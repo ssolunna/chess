@@ -1,67 +1,87 @@
 # frozen_string_literal: true
 
 module PawnMovement
-  @movements = {}
+  @@movements = { 'white' => {}, 'black' => {} }
 
-  def self.lay_out(queue = %w[a2 b2 c2 d2 e2 f2 g2 h2])
-    return @movements if queue.empty?
+  WHITE_STARTING_ROW = %w[a2 b2 c2 d2 e2 f2 g2 h2].freeze
+  BLACK_STARTING_ROW = %w[a7 b7 c7 d7 e7 f7 g7 h7].freeze
+
+  def self.lay_out(layout = @@movements, color = 'white', queue = [*WHITE_STARTING_ROW])
+    return layout if color == 'black' && queue.empty?
+
+    if queue.empty?
+      color = 'black'
+      queue = [*BLACK_STARTING_ROW]
+    end
 
     square = queue.first
 
-    @movements[square] = [
-      in_front(square),
-      in_front_on_left(square),
-      in_front_on_right(square),
-      two_squares_in_front(square)
+    layout[color][square] = [
+      in_front(color, square),
+      in_front_on_left(color, square),
+      in_front_on_right(color, square),
+      two_squares_in_front(color, square)
     ].compact
 
-    @movements[square].each do |move|
-      next if @movements.key?(move)
+    layout[color][square].each do |move|
+      next if layout[color].key?(move)
 
       queue.push(move) unless queue.include?(move)
     end
 
     queue.shift
 
-    lay_out(queue)
+    lay_out(layout, color, queue)
   end
 
-  private
-
-  def from(square)
-    @movements[square]
+  def moves_from(color, square)
+    @@movements[color][square]
   end
 
-  def self.in_front(square)
-    new_square = "#{square[0]}#{square[1].next}"
+  def self.in_front(color, square)
+    column = square[0]
 
-    new_square.match?(/^[a-h][2-8]$/) ? new_square : nil
+    row = color == 'white' ? square[1].next : prev(square[1])
+
+    new_square = column + row
+
+    new_square.match?(pattern(color)) ? new_square : nil
   end
 
-  def self.in_front_on_left(square)
-    new_square = "#{prev(square[0])}#{square[1].next}"
+  def self.in_front_on_left(color, square)
+    column = color == 'white' ? prev(square[0]) : square[0].next
 
-    new_square.match?(/^[a-h][2-8]$/) ? new_square : nil
+    row = color == 'white' ? square[1].next : prev(square[1])
+
+    new_square = column + row
+
+    new_square.match?(pattern(color)) ? new_square : nil
   end
 
-  def self.in_front_on_right(square)
-    new_square = "#{square[0].next}#{square[1].next}"
+  def self.in_front_on_right(color, square)
+    column = color == 'white' ? square[0].next : prev(square[0])
 
-    new_square.match?(/^[a-h][2-8]$/) ? new_square : nil
+    row = color == 'white' ? square[1].next : prev(square[1])
+
+    new_square = column + row
+
+    new_square.match?(pattern(color)) ? new_square : nil
   end
 
   # Special move, only on Pawn's first move
-  def self.two_squares_in_front(square)
-    return unless square[1] == '2' # White Pawn's starting square
+  def self.two_squares_in_front(color, square)
+    starting_row = color == 'white' ? '2' : '7'
 
-    new_square = "#{square[0]}#{square[1].next.next}"
+    return unless square[1] == starting_row
 
-    new_square.match?(/^[a-h][2-8]$/) ? new_square : nil
+    "#{square[0]}#{color == 'white' ? square[1].next.next : prev(prev(square[1]))}"
   end
 
   def self.prev(string)
     (string.to_i(36) - 1).to_s(36)
   end
 
-  private_class_method :in_front, :in_front_on_left, :in_front_on_right, :two_squares_in_front, :prev
+  def self.pattern(color)
+    color == 'white' ? /^[a-h][2-8]$/ : /^[a-h][1-7]$/
+  end
 end
