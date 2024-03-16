@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../scoped_matchers_spec'
+require_relative './shared_examples_movements_spec'
 require_relative '../../lib/movements/king_movement'
 
 describe KingMovement do
@@ -24,18 +25,7 @@ describe KingMovement do
       )
     end
 
-    it 'saves the layout in a @@movements class variable' do
-      hash = {}
-
-      layout = described_class.lay_out
-
-      described_class.class_variable_set(:@@movements, hash)
-
-      expect { described_class.lay_out }.to \
-        change { movements }
-        .from(hash)
-        .to(layout)
-    end
+    include_examples 'saves layout', {}
   end
 
   describe '#from' do

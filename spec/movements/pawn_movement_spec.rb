@@ -1,25 +1,23 @@
 # frozen_string_literal: true
 
+require_relative '../scoped_matchers_spec'
+require_relative './shared_examples_movements_spec'
 require_relative '../../lib/movements/pawn_movement'
 
-RSpec::Matchers.define :be_a_hash_of_size do |expected|
-  match do |hash|
-    hash.size == expected
-  end
-end
-
 describe PawnMovement do
+  include MyHelpers
+
   describe '.lay_out' do
     let(:movements) { described_class.class_variable_get(:@@movements) }
 
-    it 'lay out a hash containing 56 white and black pawns movements' do
+    it 'returns a hash containing 56 white and black pawns movements' do
       expect(described_class.lay_out).to match(
         'white' => be_a_hash_of_size(56),
         'black' => be_a_hash_of_size(56)
       )
     end
 
-    it 'expects white pawn movements to be between ranges a-h and 2-8' do
+    it 'expects all white pawn movements to be between ranges a-h and 2-8' do
       white_square_pattern = /^[a-h][2-8]$/
 
       expect(described_class.lay_out['white']).to all match(
@@ -30,7 +28,7 @@ describe PawnMovement do
       )
     end
 
-    it 'expects black pawn movements to be between ranges a-h and 1-7' do
+    it 'expects all black pawn movements to be between ranges a-h and 1-7' do
       black_square_pattern = /^[a-h][1-7]$/
 
       expect(described_class.lay_out['black']).to all match(
@@ -41,16 +39,7 @@ describe PawnMovement do
       )
     end
 
-    it 'saves the layout in a @movements class variable' do
-      hash = { 'white' => {}, 'black' => {} }
-      layout = described_class.lay_out
-
-      described_class.class_variable_set(:@@movements, hash)
-
-      expect { described_class.lay_out }.to \
-        change { movements }
-        .to(layout)
-    end
+    include_examples 'saves layout', { 'white' => {}, 'black' => {} }
   end
 
   describe '#from' do
