@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
 module PawnMovement
-  @@movements = { 'white' => {}, 'black' => {} }
+  @@movements = nil
 
   WHITE_STARTING_ROW = %w[a2 b2 c2 d2 e2 f2 g2 h2].freeze
   BLACK_STARTING_ROW = %w[a7 b7 c7 d7 e7 f7 g7 h7].freeze
 
-  def self.lay_out(color = 'white', queue = [*WHITE_STARTING_ROW])
-    return @@movements if color == 'black' && queue.empty?
+  def self.set_up
+    @@movements = lay_out
+  end
+
+  def self.lay_out(layout = { 'white' => {}, 'black' => {} }, color = 'white', queue = [*WHITE_STARTING_ROW])
+    return layout if color == 'black' && queue.empty?
 
     if queue.empty?
       color = 'black'
@@ -16,22 +20,22 @@ module PawnMovement
 
     square = queue.first
 
-    @@movements[color][square] = [
+    layout[color][square] = [
       in_front(color, square),
       in_front('left', color, square),
       in_front('right', color, square),
       two_squares_in_front(color, square)
     ].compact
 
-    @@movements[color][square].each do |move|
-      next if @@movements[color].key?(move)
+    layout[color][square].each do |move|
+      next if layout[color].key?(move)
 
       queue.push(move) unless queue.include?(move)
     end
 
     queue.shift
 
-    lay_out(color, queue)
+    lay_out(layout, color, queue)
   end
 
   def moves_from(color, square)

@@ -1,36 +1,16 @@
 # frozen_string_literal: true
 
-require_relative '../scoped_matchers_spec'
 require_relative './shared_examples_movements_spec'
 require_relative '../../lib/movements/bishop_movement'
 
 describe BishopMovement do
-  include MyHelpers
-
   describe '.lay_out' do
-    let(:movements) { described_class.class_variable_get(:@@movements) }
-
-    it 'returns a hash containing 64 bishop movements' do
-      expect(described_class.lay_out).to be_a_hash_of_size(64)
-    end
-
-    it 'expects all movements to be between the ranges a-h and 1-8' do
-      pattern = /^[a-h][1-8]$/
-
-      expect(described_class.lay_out).to all match(
-        a_collection_containing_exactly(
-          match(pattern),
-          (be_an(Array).and all match(pattern))
-        )
-      )
-    end
-
-    include_examples 'saves layout', {}
+    include_examples '.lay_out method'
   end
 
   describe '#from' do
     let(:bishop) { Class.new { extend BishopMovement } }
-    let!(:layout) { described_class.lay_out }
+    let!(:setup) { described_class.set_up }
 
     context 'when current square is a1' do
       it 'returns an array of moves: b2, c3, d4, e5, f6, g7, h8' do

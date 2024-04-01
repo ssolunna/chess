@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../scoped_matchers_spec'
-require_relative './shared_examples_movements_spec'
 require_relative '../../lib/movements/pawn_movement'
 
 describe PawnMovement do
@@ -38,12 +37,10 @@ describe PawnMovement do
         )
       )
     end
-
-    include_examples 'saves layout', { 'white' => {}, 'black' => {} }
   end
 
   describe '#from' do
-    let!(:layout) { described_class.lay_out }
+    let!(:setup) { described_class.set_up }
 
     context 'with white pawns' do
       let(:color) { 'white' }

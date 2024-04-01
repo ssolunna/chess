@@ -1,29 +1,33 @@
 # frozen_string_literal: true
 
 module BishopMovement
-  @@movements = {}
+  @@movements = nil
 
-  def self.lay_out(queue = %w[a1 h1])
-    return @@movements if queue.empty?
+  def self.set_up
+    @@movements = lay_out
+  end
+
+  def self.lay_out(layout = {}, queue = %w[a1 h1])
+    return layout if queue.empty?
 
     square = queue.first
 
-    @@movements[square] = [
+    layout[square] = [
       up_left(square),
       up_right(square),
       down_left(square),
       down_right(square)
     ].flatten!
 
-    @@movements[square].each do |move|
-      next if @@movements.key?(move)
+    layout[square].each do |move|
+      next if layout.key?(move)
 
       queue.push(move) unless queue.include?(move)
     end
 
     queue.shift
 
-    lay_out(queue)
+    lay_out(layout, queue)
   end
 
   def moves_from(square)
