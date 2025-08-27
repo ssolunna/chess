@@ -39,7 +39,7 @@ describe PawnMovement do
     end
   end
 
-  describe '#from' do
+  describe '#moves_from' do
     let!(:setup) { described_class.set_up }
 
     context 'with white pawns' do

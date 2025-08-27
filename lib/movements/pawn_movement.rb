@@ -68,6 +68,37 @@ module PawnMovement
     "#{square[0]}#{color == 'white' ? square[1].next.next : prev(prev(square[1]))}"
   end
 
+  # Special movement
+  def self.en_passant(color, square)
+    column = square[0]
+
+    row = color == 'white' ? square[1].next : prev(square[1])
+
+    new_square = column + row
+
+    new_square.match?(pattern(color)) ? new_square : nil
+  end
+
+  def self.left(color, square)
+    column = prev(square[0])
+
+    row = square[1]
+
+    new_square = column + row
+
+    new_square.match?(pattern(color)) ? new_square : nil
+  end
+
+  def self.right(color, square)
+    column = square[0].next
+
+    row = square[1]
+
+    new_square = column + row
+
+    new_square.match?(pattern(color)) ? new_square : nil
+  end
+
   def self.prev(string)
     (string.to_i(36) - 1).to_s(36)
   end
