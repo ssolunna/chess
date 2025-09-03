@@ -6,6 +6,10 @@ require_relative './bishop_movement'
 module QueenMovement
   @@movements = nil
 
+  def moves_from(square)
+    @@movements[square]
+  end
+
   def self.set_up
     @@movements = lay_out
   end
@@ -16,9 +20,5 @@ module QueenMovement
 
     bishop_movements.each { |square, moves| layout[square].push(*moves) }
     layout
-  end
-
-  def moves_from(square)
-    @@movements[square]
   end
 end

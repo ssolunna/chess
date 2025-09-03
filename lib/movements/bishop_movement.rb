@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
+require_relative '../movements/chessboard_directions'
+
 module BishopMovement
+  include Directions
+  extend Directions
+
   @@movements = nil
+
+  def moves_from(square)
+    @@movements[square]
+  end
 
   def self.set_up
     @@movements = lay_out
@@ -12,12 +21,7 @@ module BishopMovement
 
     square = queue.first
 
-    layout[square] = [
-      up_left(square),
-      up_right(square),
-      down_left(square),
-      down_right(square)
-    ].flatten!
+    layout[square] = search_moves(square)
 
     layout[square].each do |move|
       next if layout.key?(move)
@@ -30,73 +34,42 @@ module BishopMovement
     lay_out(layout, queue)
   end
 
-  def moves_from(square)
-    @@movements[square]
+  def self.search_moves(square)
+    [up_left(square),
+     up_right(square),
+     down_left(square),
+     down_right(square)].flatten
   end
 
   def self.up_left(square)
     new_squares = []
 
-    loop do
-      next_square = prev(square[0]) + square[1].next
+    up_leftward(square) { |next_square| new_squares << next_square }
 
-      return new_squares unless next_square.match?(pattern)
-
-      new_squares << next_square
-
-      square = next_square
-    end
+    new_squares
   end
 
   def self.up_right(square)
     new_squares = []
 
-    loop do
-      next_square = square[0].next + square[1].next
+    up_rightward(square) { |next_square| new_squares << next_square }
 
-      return new_squares unless next_square.match?(pattern)
-
-      new_squares << next_square
-
-      square = next_square
-    end
+    new_squares
   end
 
   def self.down_left(square)
     new_squares = []
 
-    loop do
-      next_square = prev(square[0]) + prev(square[1])
+    down_leftward(square) { |next_square| new_squares << next_square }
 
-      return new_squares unless next_square.match?(pattern)
-
-      new_squares << next_square
-
-      square = next_square
-    end
+    new_squares
   end
 
   def self.down_right(square)
     new_squares = []
 
-    loop do
-      next_square = square[0].next + prev(square[1])
+    down_rightward(square) { |next_square| new_squares << next_square }
 
-      return new_squares unless next_square.match?(pattern)
-
-      new_squares << next_square
-
-      square = next_square
-    end
+    new_squares
   end
-
-  def self.prev(string)
-    (string.to_i(36) - 1).to_s(36)
-  end
-
-  def self.pattern
-    /^[a-h][1-8]$/
-  end
-
-  private_class_method :prev, :pattern
 end

@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require_relative '../movements/chessboard_directions'
+
 module KnightMovement
+  extend Directions
+
   @@movements = nil
 
   def moves_from(square)
@@ -16,16 +20,7 @@ module KnightMovement
 
     square = queue.first
 
-    layout[square] = [
-      up('left', square),
-      up('right', square),
-      down('left', square),
-      down('right', square),
-      right('up', square),
-      right('down', square),
-      left('up', square),
-      left('down', square)
-    ].compact
+    layout[square] = search_moves(square)
 
     layout[square].each do |move|
       next if layout.key?(move)
@@ -38,6 +33,17 @@ module KnightMovement
     lay_out(layout, queue)
   end
 
+  def self.search_moves(square)
+    [up('left', square),
+     up('right', square),
+     down('left', square),
+     down('right', square),
+     right('up', square),
+     right('down', square),
+     left('up', square),
+     left('down', square)].compact
+  end
+
   def self.up(direction, square)
     new_square = case direction
                  when 'left'
@@ -46,7 +52,7 @@ module KnightMovement
                    square[0].next + square[1].next.next
                  end
 
-    new_square.match?(pattern) ? new_square : nil
+    match_square_pattern?(new_square) ? new_square : nil
   end
 
   def self.down(direction, square)
@@ -57,7 +63,7 @@ module KnightMovement
                    square[0].next + prev(prev(square[1]))
                  end
 
-    new_square.match?(pattern) ? new_square : nil
+    match_square_pattern?(new_square) ? new_square : nil
   end
 
   def self.right(direction, square)
@@ -68,7 +74,7 @@ module KnightMovement
                    square[0].next.next + prev(square[1])
                  end
 
-    new_square.match?(pattern) ? new_square : nil
+    match_square_pattern?(new_square) ? new_square : nil
   end
 
   def self.left(direction, square)
@@ -79,16 +85,6 @@ module KnightMovement
                    prev(prev(square[0])) + prev(square[1])
                  end
 
-    new_square.match?(pattern) ? new_square : nil
+    match_square_pattern?(new_square) ? new_square : nil
   end
-
-  def self.prev(string)
-    (string.to_i(36) - 1).to_s(36)
-  end
-
-  def self.pattern
-    /^[a-h][1-8]$/
-  end
-
-  private_class_method :prev, :pattern
 end

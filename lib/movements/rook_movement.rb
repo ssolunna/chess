@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
+require_relative '../movements/chessboard_directions'
+
 module RookMovement
+  include Directions
+  extend Directions
+
   @@movements = nil
+
+  def moves_from(square)
+    @@movements[square]
+  end
 
   def self.set_up
     @@movements = lay_out
@@ -12,12 +21,7 @@ module RookMovement
 
     square = queue.first
 
-    layout[square] = [
-      forward(square),
-      backward(square),
-      sideways('left', square),
-      sideways('right', square)
-    ].flatten!
+    layout[square] = search_moves(square)
 
     layout[square].each do |move|
       next if layout.key?(move)
@@ -30,42 +34,42 @@ module RookMovement
     lay_out(layout, queue)
   end
 
-  def moves_from(square)
-    @@movements[square]
+  def self.search_moves(square)
+    [up(square),
+     down(square),
+     left(square),
+     right(square)].flatten
   end
 
-  def self.forward(square)
-    column = square[0]
+  def self.up(square)
+    new_squares = []
 
-    rows = square[1].next.to_i.upto(8).inject([]) { |array, row| array.push row }
+    upward(square) { |next_square| new_squares << next_square }
 
-    rows.map { |row| column + row.to_s }
+    new_squares
   end
 
-  def self.backward(square)
-    column = square[0]
+  def self.down(square)
+    new_squares = []
 
-    rows = prev(square[1]).to_i.downto(1).inject([]) { |array, row| array.push row }
+    downward(square) { |next_square| new_squares << next_square }
 
-    rows.map { |row| column + row.to_s }
+    new_squares
   end
 
-  def self.sideways(direction, square)
-    columns = case direction
-              when 'left'
-                ('a'..prev(square[0])).inject([]) { |array, column| array.push column }
-              when 'right'
-                (square[0].next..'h').inject([]) { |array, column| array.push column }
-              end
+  def self.left(square)
+    new_squares = []
 
-    row = square[1]
+    leftward(square) { |next_square| new_squares << next_square }
 
-    columns.map { |column| column + row }
+    new_squares
   end
 
-  def self.prev(string)
-    (string.to_i(36) - 1).to_s(36)
-  end
+  def self.right(square)
+    new_squares = []
 
-  private_class_method :prev
+    rightward(square) { |next_square| new_squares << next_square }
+
+    new_squares
+  end
 end

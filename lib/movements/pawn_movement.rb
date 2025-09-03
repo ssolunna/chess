@@ -1,10 +1,18 @@
 # frozen_string_literal: true
 
+require_relative '../movements/chessboard_directions'
+
 module PawnMovement
+  extend Directions
+
   @@movements = nil
 
   WHITE_STARTING_ROW = %w[a2 b2 c2 d2 e2 f2 g2 h2].freeze
   BLACK_STARTING_ROW = %w[a7 b7 c7 d7 e7 f7 g7 h7].freeze
+
+  def moves_from(color, square)
+    @@movements[color][square]
+  end
 
   def self.set_up
     @@movements = lay_out
@@ -20,12 +28,7 @@ module PawnMovement
 
     square = queue.first
 
-    layout[color][square] = [
-      in_front(color, square),
-      in_front('left', color, square),
-      in_front('right', color, square),
-      two_squares_in_front(color, square)
-    ].compact
+    layout[color][square] = search_moves(color, square)
 
     layout[color][square].each do |move|
       next if layout[color].key?(move)
@@ -38,8 +41,11 @@ module PawnMovement
     lay_out(layout, color, queue)
   end
 
-  def moves_from(color, square)
-    @@movements[color][square]
+  def self.search_moves(color, square)
+    [in_front(color, square),
+     in_front('left', color, square),
+     in_front('right', color, square),
+     two_squares_in_front(color, square)].compact
   end
 
   def self.in_front(direction = 'straight', color, square)
@@ -79,33 +85,17 @@ module PawnMovement
     new_square.match?(pattern(color)) ? new_square : nil
   end
 
-  def self.left(color, square)
-    column = prev(square[0])
-
-    row = square[1]
-
-    new_square = column + row
-
-    new_square.match?(pattern(color)) ? new_square : nil
+  def self.left(square)
+    leftward(square) { |next_square| return next_square }
   end
 
-  def self.right(color, square)
-    column = square[0].next
-
-    row = square[1]
-
-    new_square = column + row
-
-    new_square.match?(pattern(color)) ? new_square : nil
-  end
-
-  def self.prev(string)
-    (string.to_i(36) - 1).to_s(36)
+  def self.right(square)
+    rightward(square) { |next_square| return next_square }
   end
 
   def self.pattern(color)
     color == 'white' ? /^[a-h][2-8]$/ : /^[a-h][1-7]$/
   end
 
-  private_class_method :prev, :pattern
+  private_class_method :pattern
 end

@@ -43,8 +43,8 @@ class Pawn < Piece
 
   # Special movement
   def taking_en_passant(board)
-    square_on_left = PawnMovement.left(@color, @current_square)
-    square_on_right = PawnMovement.right(@color, @current_square)
+    square_on_left = PawnMovement.left(@current_square)
+    square_on_right = PawnMovement.right(@current_square)
 
     if double_stepped?(board[square_on_left])
       PawnMovement.en_passant(@color, square_on_left)

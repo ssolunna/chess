@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 
+require_relative '../movements/chessboard_directions'
+
 module KingMovement
+  extend Directions
+
   @@movements = nil
+
+  def moves_from(square)
+    @@movements[square]
+  end
 
   def self.set_up
     @@movements = lay_out
@@ -12,16 +20,7 @@ module KingMovement
 
     square = queue.first
 
-    layout[square] = [
-      up(square),
-      up('left', square),
-      up('right', square),
-      down(square),
-      down('left', square),
-      down('right', square),
-      left(square),
-      right(square)
-    ].compact
+    layout[square] = search_moves(square)
 
     layout[square].each do |move|
       next if layout.key?(move)
@@ -34,71 +33,46 @@ module KingMovement
     lay_out(layout, queue)
   end
 
-  def moves_from(square)
-    @@movements[square]
+  def self.search_moves(square)
+    [up(square),
+     up_left(square),
+     up_right(square),
+     down(square),
+     down_left(square),
+     down_right(square),
+     left(square),
+     right(square)].compact
   end
 
-  def self.up(direction = 'straight', square)
-    column = case direction
-             when 'straight'
-               square[0]
-             when 'left'
-               prev(square[0])
-             when 'right'
-               square[0].next
-             end
-
-    row = square[1].next
-
-    new_square = column + row
-
-    new_square.match?(pattern) ? new_square : nil
+  def self.up(square)
+    upward(square) { |next_square| return next_square }
   end
 
-  def self.down(direction = 'straight', square)
-    column = case direction
-             when 'straight'
-               square[0]
-             when 'left'
-               prev(square[0])
-             when 'right'
-               square[0].next
-             end
+  def self.up_left(square)
+    up_leftward(square) { |next_square| return next_square }
+  end
 
-    row = prev(square[1])
+  def self.up_right(square)
+    up_rightward(square) { |next_square| return next_square }
+  end
 
-    new_square = column + row
+  def self.down(square)
+    downward(square) { |next_square| return next_square }
+  end
 
-    new_square.match?(pattern) ? new_square : nil
+  def self.down_left(square)
+    down_leftward(square) { |next_square| return next_square }
+  end
+
+  def self.down_right(square)
+    down_rightward(square) { |next_square| return next_square }
   end
 
   def self.left(square)
-    column = prev(square[0])
-
-    row = square[1]
-
-    new_square = column + row
-
-    new_square.match?(pattern) ? new_square : nil
+    leftward(square) { |next_square| return next_square }
   end
 
   def self.right(square)
-    column = square[0].next
-
-    row = square[1]
-
-    new_square = column + row
-
-    new_square.match?(pattern) ? new_square : nil
+    rightward(square) { |next_square| return next_square }
   end
-
-  def self.prev(string)
-    (string.to_i(36) - 1).to_s(36)
-  end
-
-  def self.pattern
-    /^[a-h][1-8]$/
-  end
-
-  private_class_method :prev, :pattern
 end
