@@ -1,0 +1,140 @@
+# frozen_string_literal: true
+
+require_relative '../../lib/pieces/queen'
+require_relative '../../lib/movements/queen_movement'
+
+RSpec.shared_examples 'a queen' do
+  describe '#search_legal_moves' do
+    context 'when queen is at d1' do
+      context 'if d2-d6, f3, g4, b3, e1 empty, same-color at e2, f1-h1, a1-c1
+          and opponent at d7-d8, h5, c2, a4 ' do
+        it 'returns array of squares: d2 to d7, c2' do
+          current_square = 'd1'
+          board = { 'd2' => ' ',
+                    'd3' => ' ',
+                    'd4' => ' ',
+                    'd5' => ' ',
+                    'd6' => ' ',
+                    'd7' => double(color: opponent_color),
+                    'd8' => double(color: opponent_color),
+                    'e1' => ' ',
+                    'f1' => double(color: color),
+                    'g1' => double(color: color),
+                    'h1' => double(color: color),
+                    'a1' => double(color: color),
+                    'b1' => double(color: color),
+                    'c1' => double(color: color),
+                    'e2' => double(color: color),
+                    'f3' => ' ',
+                    'g4' => ' ',
+                    'h5' => double(color: opponent_color),
+                    'c2' => double(color: opponent_color),
+                    'b3' => ' ',
+                    'a4' => double(color: opponent_color) }
+          expected_array = %w[e1 d2 d3 d4 d5 d6 d7 c2]
+
+          queen = described_class.new(color, current_square)
+          legal_moves = queen.search_legal_moves(board)
+
+          expect(legal_moves).to match_array(expected_array)
+        end
+      end
+    end
+
+    context 'when queen is at d8' do
+      context 'if a8, b8, f8, b6, a5, f6, g5 empty, same-color at c8, e8, c7-e7
+          and opponent at g8 h8, d6-d1, h4' do
+        it 'returns an empty array' do
+          current_square = 'd8'
+          board = { 'a8' => ' ',
+                    'b8' => ' ',
+                    'c8' => double(color: color),
+                    'e8' => double(color: color),
+                    'f8' => ' ',
+                    'g8' => double(color: opponent_color),
+                    'h8' => double(color: opponent_color),
+                    'e7' => double(color: color),
+                    'f6' => ' ',
+                    'g5' => ' ',
+                    'h4' => double(color: opponent_color),
+                    'c7' => double(color: color),
+                    'b6' => ' ',
+                    'a5' => ' ',
+                    'd7' => double(color: color),
+                    'd6' => double(color: opponent_color),
+                    'd5' => double(color: opponent_color),
+                    'd4' => double(color: opponent_color),
+                    'd3' => double(color: opponent_color),
+                    'd2' => double(color: opponent_color),
+                    'd1' => double(color: opponent_color) }
+
+          queen = described_class.new(color, current_square)
+          legal_moves = queen.search_legal_moves(board)
+
+          expect(legal_moves).to be_empty
+        end
+      end
+    end
+
+    context 'when queen is at d4' do
+      context 'if d5-d8 e4 d3 c4 b4 f6 g1 empty, same-color at c5 e5 a7 d2-d1 f2
+          and opponent at c3 e3 f4-h4 a4 b6 g7 h8 b2 a1' do
+        it 'returns array of squares: d5-d8, e4, f4, e3, d3, c4, b4, a4, c3' do
+          current_square = 'd4'
+          board = { 'd5' => ' ',
+                    'd6' => ' ',
+                    'f3' => ' ',
+                    'd7' => ' ',
+                    'd8' => ' ',
+                    'e5' => double(color: color),
+                    'f6' => ' ',
+                    'g7' => double(color: opponent_color),
+                    'h8' => double(color: opponent_color),
+                    'e4' => ' ',
+                    'f4' => double(color: opponent_color),
+                    'g4' => double(color: opponent_color),
+                    'h4' => double(color: opponent_color),
+                    'e3' => double(color: opponent_color),
+                    'f2' => double(color: color),
+                    'g1' => ' ',
+                    'd3' => ' ',
+                    'd2' => double(color: color),
+                    'd1' => double(color: color),
+                    'c3' => double(color: opponent_color),
+                    'b2' => double(color: opponent_color),
+                    'a1' => double(color: opponent_color),
+                    'c4' => ' ',
+                    'b4' => ' ',
+                    'a4' => double(color: opponent_color),
+                    'c5' => double(color: color),
+                    'b6' => double(color: opponent_color),
+                    'a7' => double(color: color) }
+          expected_array = %w[d5 d6 d7 d8 e4 f4 e3 d3 c4 b4 a4 c3]
+
+          queen = described_class.new(color, current_square)
+          legal_moves = queen.search_legal_moves(board)
+
+          expect(legal_moves).to match_array(expected_array)
+        end
+      end
+    end
+  end
+end
+
+describe Queen do
+  let!(:setup) { QueenMovement.set_up }
+
+  context 'with white queens' do
+    it_behaves_like 'a queen' do
+      let(:color) { 'white' }
+      let(:opponent_color) { 'black' }
+    end
+  end
+
+  context 'with black queens' do
+    it_behaves_like 'a queen' do
+      let(:color) { 'black' }
+      let(:opponent_color) { 'white' }
+    end
+  end
+end
