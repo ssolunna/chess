@@ -116,6 +116,128 @@ RSpec.shared_examples 'a bishop' do
       end
     end
   end
+
+  describe '#screen_legal_moves' do
+    context 'when bishop is at b5' do
+      let(:current_square) { 'b5' }
+
+      context 'when legal moves are [a6, c4, d3, c6, d7]' do
+        let(:legal_moves) { %w[a6 c4 d3 c6 d7] }
+
+        context 'if king is in check at f5 by opponent bishop at d3' do
+          it 'returns array of squares: d3' do
+            bishop = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'd3')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('d3'))
+
+            board = { 'd3' => opponent,
+                      'f5' => instance_double('King', current_square: 'f5',
+                                                      color: color,
+                                                      is_a?: true),
+                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'c4' => ' ',
+                      'e4' => ' ',
+                      'd7' => double(color: opponent_color, gives_check?: false),
+                      'c6' => ' ',
+                      'e2' => double(color: color),
+                      'f1' => ' ',
+                      'b5' => bishop }
+
+            expected_array = %w[d3]
+
+            selected_legal_moves = bishop.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at e6 by opponent bishop at c8' do
+          it 'returns array of squares: d7' do
+            bishop = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'c8')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('c8'))
+
+            board = { 'c8' => opponent,
+                      'e6' => instance_double('King', current_square: 'e6',
+                                                      color: color,
+                                                      is_a?: true),
+                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'c4' => ' ',
+                      'd7' => ' ',
+                      'd3' => ' ',
+                      'c6' => ' ',
+                      'e2' => double(color: color),
+                      'f1' => ' ',
+                      'b5' => bishop }
+
+            expected_array = %w[d7]
+
+            selected_legal_moves = bishop.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at e6 by opponent bishop at g8' do
+          it 'returns an empty array' do
+            bishop = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'g8')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('g8'))
+
+            board = { 'f7' => ' ',
+                      'g8' => opponent,
+                      'e6' => instance_double('King', current_square: 'e6',
+                                                      color: color,
+                                                      is_a?: true),
+                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'c4' => ' ',
+                      'd7' => double(color: opponent_color, gives_check?: false),
+                      'c6' => ' ',
+                      'e2' => double(color: color),
+                      'f1' => ' ',
+                      'd3' => ' ',
+                      'b5' => bishop }
+
+            selected_legal_moves = bishop.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to be_empty
+          end
+        end
+
+        context 'if king is not in check at e6 by opponent bishop at g8' do
+          it 'returns array of squares: a6, c4, c6, d3, d7' do
+            bishop = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'g8')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('g8'))
+
+            board = { 'd3' => ' ',
+                      'g8' => opponent,
+                      'e6' => instance_double('King', current_square: 'e6',
+                                                      color: color,
+                                                      is_a?: true),
+                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'c4' => ' ',
+                      'd7' => double(color: opponent_color, gives_check?: false),
+                      'c6' => ' ',
+                      'e2' => double(color: color),
+                      'f7' => double(color: color),
+                      'f1' => ' ',
+                      'b5' => bishop }
+
+            expected_array = legal_moves
+
+            selected_legal_moves = bishop.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+      end
+    end
+  end
 end
 
 describe Bishop do

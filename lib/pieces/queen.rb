@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'piece'
+require_relative 'king'
 require_relative '../movements/queen_movement'
 require_relative '../movements/chessboard_directions'
 
@@ -13,7 +14,7 @@ class Queen < Piece
     legal_moves = []
 
     directions.each do |direction|
-      direction.call(@current_square) do |next_square|
+      direction.call(current_square) do |next_square|
         if opponent_in_square?(next_square, board)
           legal_moves << next_square
           break

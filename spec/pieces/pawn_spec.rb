@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/pieces/pawn'
+require_relative '../../lib/movements/pawn_movement'
 
 describe Pawn do
   describe '#search_legal_moves' do
@@ -140,7 +141,7 @@ describe Pawn do
       end
 
       # Special movement: 2 steps forward
-      # Only when available when Pawn has not moved yet
+      # Only available when Pawn has not moved yet
       # It is at its initial square
       context 'when current square is b2' do
         context 'if b3, b4 empty and black at a3, c3' do
@@ -543,7 +544,7 @@ describe Pawn do
       end
 
       # Special movement: 2 steps forward
-      # Only when available when Pawn has not moved yet
+      # Only available when Pawn has not moved yet
       # It is at its initial square
       context 'when current square is b7' do
         context 'if b6, b5 empty and white at a6, c6' do
@@ -805,6 +806,184 @@ describe Pawn do
               legal_moves = black_pawn.search_legal_moves(board)
 
               expect(legal_moves).to include(square_passed_over)
+            end
+          end
+        end
+      end
+    end
+  end
+
+  describe '#screen_legal_moves' do
+    let!(:setup) { PawnMovement.set_up }
+
+    context 'with white pawns' do
+      let(:color) { 'white' }
+      let(:opponent_color) { 'black' }
+
+      context 'when current square is d2' do
+        let(:current_square) { 'd2' }
+
+        context 'when legal moves are [d3, d4, e3, c3]' do
+          let(:legal_moves) { %w[d3 d4 e3 c3] }
+
+          context 'if king is in check at f2 by opponent pawn at e3' do
+            it 'returns array of squares: e3' do
+              white_pawn = described_class.new(color, current_square)
+
+              opponent = described_class.new(opponent_color, 'e3')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
+              allow(opponent).to receive(:taking_en_passant)
+
+              board = { 'd2' => white_pawn,
+                        'd3' => ' ',
+                        'd4' => ' ',
+                        'e3' => opponent,
+                        'f2' => instance_double('King', current_square: 'f2',
+                                                        color: color,
+                                                        is_a?: true),
+                        'c3' => double(color: opponent_color, gives_check?: false) }
+
+              expected_array = %w[e3]
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to match_array(expected_array)
+            end
+          end
+
+          context 'if king is not in check at e2 by opponent pawn at e3' do
+            it 'returns array of squares: d3, d4, e3, c3' do
+              white_pawn = described_class.new(color, current_square)
+
+              opponent = described_class.new(opponent_color, 'e3')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
+              allow(opponent).to receive(:taking_en_passant)
+
+              board = { 'd2' => white_pawn,
+                        'd3' => ' ',
+                        'd4' => ' ',
+                        'e3' => opponent,
+                        'e2' => instance_double('King', current_square: 'e2',
+                                                        color: color,
+                                                        is_a?: true),
+                        'c3' => double(color: opponent_color, gives_check?: false) }
+
+              expected_array = legal_moves
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to match_array(expected_array)
+            end
+          end
+
+          context 'if king is in check at f2 by opponent pawn at g3' do
+            it 'returns an empty array' do
+              white_pawn = described_class.new(color, current_square)
+
+              opponent = described_class.new(opponent_color, 'g3')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g3'))
+              allow(opponent).to receive(:taking_en_passant)
+
+              board = { 'd2' => white_pawn,
+                        'd3' => ' ',
+                        'd4' => ' ',
+                        'e3' => double(color: opponent_color, gives_check?: false),
+                        'g3' => opponent,
+                        'f2' => instance_double('King', current_square: 'f2',
+                                                        color: color,
+                                                        is_a?: true),
+                        'c3' => double(color: opponent_color, gives_check?: false) }
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to be_empty
+            end
+          end
+        end
+      end
+    end
+
+    context 'with black pawns' do
+      let(:color) { 'black' }
+      let(:opponent_color) { 'white' }
+
+      context 'when current square is d7' do
+        let(:current_square) { 'd7' }
+
+        context 'when legal moves are [d6, d5, e6, c6]' do
+          let(:legal_moves) { %w[d6 d5 e6 c6] }
+
+          context 'if king is in check at f7 by opponent pawn at e6' do
+            it 'returns array of squares: e6' do
+              white_pawn = described_class.new(color, current_square)
+
+              opponent = described_class.new(opponent_color, 'e6')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
+              allow(opponent).to receive(:taking_en_passant)
+
+              board = { 'd7' => white_pawn,
+                        'd6' => ' ',
+                        'd5' => ' ',
+                        'e6' => opponent,
+                        'f7' => instance_double('King', current_square: 'f7',
+                                                        color: color,
+                                                        is_a?: true),
+                        'c6' => double(color: opponent_color, gives_check?: false) }
+
+              expected_array = %w[e6]
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to match_array(expected_array)
+            end
+          end
+
+          context 'if king is not in check at e7 by opponent pawn at e6' do
+            it 'returns array of squares: d6, d5, e6, c6' do
+              white_pawn = described_class.new(color, current_square)
+
+              opponent = described_class.new(opponent_color, 'e6')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
+              allow(opponent).to receive(:taking_en_passant)
+
+              board = { 'd7' => white_pawn,
+                        'd6' => ' ',
+                        'd5' => ' ',
+                        'e6' => opponent,
+                        'e7' => instance_double('King', current_square: 'e7',
+                                                        color: color,
+                                                        is_a?: true),
+                        'c6' => double(color: opponent_color, gives_check?: false) }
+
+              expected_array = legal_moves
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to match_array(expected_array)
+            end
+          end
+
+          context 'if king is in check at f7 by opponent pawn at g6' do
+            it 'returns an empty array' do
+              white_pawn = described_class.new(color, current_square)
+
+              opponent = described_class.new(opponent_color, 'g6')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g6'))
+              allow(opponent).to receive(:taking_en_passant)
+
+              board = { 'd7' => white_pawn,
+                        'd6' => ' ',
+                        'd5' => ' ',
+                        'e6' => double(color: opponent_color, gives_check?: false),
+                        'g6' => opponent,
+                        'f7' => instance_double('King', current_square: 'f7',
+                                                        color: color,
+                                                        is_a?: true),
+                        'c6' => double(color: opponent_color, gives_check?: false) }
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to be_empty
             end
           end
         end

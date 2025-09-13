@@ -77,7 +77,8 @@ RSpec.shared_examples 'a knight' do
     end
 
     context 'when knight is at e5' do
-      context 'if e6, f5, c4, c6 empty, opponent at d5, f7, f3, d3 and same-color at e4, d7, g6, g4' do
+      context 'if e6, f5, c4, c6 empty, opponent at d5, f7, f3, d3
+          and same-color at e4, d7, g6, g4' do
         it 'returns array of squares: f7, f3, d3, c4, c6' do
           current_square = 'e5'
           board = { 'e6' => ' ',
@@ -143,6 +144,100 @@ RSpec.shared_examples 'a knight' do
           legal_moves = knight.search_legal_moves(board)
 
           expect(legal_moves).to match_array(expected_array)
+        end
+      end
+    end
+  end
+
+  describe '#screen_legal_moves' do
+    context 'when knight is at e5' do
+      let(:current_square) { 'e5' }
+
+      context 'when legal moves are [d7, g6, g4, f3, c6]' do
+        let(:legal_moves) { %w[d7 g6 g4 f3 c6] }
+
+        context 'if king is in check at f8 by opponent night at d7' do
+          it 'returns array of squares: d7' do
+            knight = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'd7')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
+
+            board = { 'd7' => opponent,
+                      'f7' => ' ',
+                      'f8' => instance_double('King', current_square: 'f8',
+                                                      color: color,
+                                                      is_a?: true),
+                      'g6' => double(color: opponent_color, gives_check?: false),
+                      'g4' => ' ',
+                      'f3' => double(color: opponent_color, gives_check?: false),
+                      'd3' => double(color: color),
+                      'c4' => double(color: color),
+                      'c6' => ' ',
+                      'e5' => knight }
+
+            expected_array = %w[d7]
+
+            selected_legal_moves = knight.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at h3 by opponent knight at f4' do
+          it 'returns empty array' do
+            knight = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'f4')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('f4'))
+
+            board = { 'f4' => opponent,
+                      'h3' => instance_double('King', current_square: 'h3',
+                                                      color: color,
+                                                      is_a?: true),
+                      'g6' => double(color: opponent_color, gives_check?: false),
+                      'd7' => ' ',
+                      'g4' => ' ',
+                      'f3' => double(color: opponent_color, gives_check?: false),
+                      'd3' => double(color: color),
+                      'c4' => double(color: color),
+                      'f7' => double(color: color),
+                      'c6' => ' ',
+                      'e5' => knight }
+
+            selected_legal_moves = knight.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to be_empty
+          end
+        end
+
+        context 'if king is not in check at h3 by opponent knight at h5' do
+          it 'returns array of squares: d7 g6 g4 f3 c6' do
+            knight = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'h5')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('h5'))
+
+            board = { 'h5' => opponent,
+                      'h3' => instance_double('King', current_square: 'h3',
+                                                      color: color,
+                                                      is_a?: true),
+                      'g6' => double(color: opponent_color, gives_check?: false),
+                      'd7' => ' ',
+                      'g4' => ' ',
+                      'f3' => double(color: opponent_color, gives_check?: false),
+                      'd3' => double(color: color),
+                      'c4' => double(color: color),
+                      'f7' => double(color: color),
+                      'c6' => ' ',
+                      'e5' => knight }
+
+            expected_array = legal_moves
+
+            selected_legal_moves = knight.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
         end
       end
     end

@@ -146,6 +146,125 @@ RSpec.shared_examples 'a rook' do
       end
     end
   end
+
+  describe '#screen_legal_moves' do
+    context 'when rook is at d5' do
+      let(:current_square) { 'd5' }
+
+      context 'when legal moves are [d6, d7, e5, d4, d3]' do
+        let(:legal_moves) { %w[d6 d7 e5 d4 d3] }
+
+        context 'if king is in check at f7 by opponent rook at d7' do
+          it 'returns array of squares: d7' do
+            rook = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'd7')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
+
+            board = { 'd7' => opponent,
+                      'd6' => ' ',
+                      'f7' => instance_double('King', current_square: 'f7',
+                                                      color: color,
+                                                      is_a?: true),
+                      'd4' => ' ',
+                      'd3' => double(color: opponent_color, gives_check?: false),
+                      'e5' => double(color: opponent_color, gives_check?: false),
+                      'c5' => double(color: color),
+                      'e7' => ' ',
+                      'd5' => rook }
+
+            expected_array = %w[d7]
+
+            selected_legal_moves = rook.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at f7 by opponent rook at c7' do
+          it 'returns array of squares: d7' do
+            rook = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'c7')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('c7'))
+
+            board = { 'c7' => opponent,
+                      'd7' => ' ',
+                      'd6' => ' ',
+                      'f7' => instance_double('King', current_square: 'f7',
+                                                      color: color,
+                                                      is_a?: true),
+                      'd4' => ' ',
+                      'd3' => double(color: opponent_color, gives_check?: false),
+                      'e5' => double(color: opponent_color, gives_check?: false),
+                      'c5' => double(color: color),
+                      'e7' => ' ',
+                      'd5' => rook }
+
+            expected_array = %w[d7]
+
+            selected_legal_moves = rook.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at e6 by opponent rook at e8' do
+          it 'returns an empty array' do
+            rook = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'e8')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
+
+            board = { 'e8' => opponent,
+                      'e7' => ' ',
+                      'd7' => ' ',
+                      'd6' => ' ',
+                      'e6' => instance_double('King', current_square: 'e6',
+                                                      color: color,
+                                                      is_a?: true),
+                      'd4' => ' ',
+                      'd3' => double(color: opponent_color, gives_check?: false),
+                      'e5' => double(color: opponent_color, gives_check?: false),
+                      'c5' => double(color: color),
+                      'd5' => rook }
+
+            selected_legal_moves = rook.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to be_empty
+          end
+        end
+
+        context 'if king is not in check at e6 by opponent rook at e8' do
+          it 'returns array of squares: d6, d7, e5, d4, d3' do
+            rook = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'e8')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
+
+            board = { 'e8' => opponent,
+                      'e7' => double(color: color),
+                      'd7' => ' ',
+                      'd6' => ' ',
+                      'e6' => instance_double('King', current_square: 'e6',
+                                                      color: color,
+                                                      is_a?: true),
+                      'd4' => ' ',
+                      'd3' => double(color: opponent_color, gives_check?: false),
+                      'e5' => double(color: opponent_color, gives_check?: false),
+                      'c5' => double(color: color),
+                      'd5' => rook }
+
+            expected_array = legal_moves
+
+            selected_legal_moves = rook.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+      end
+    end
+  end
 end
 
 describe Rook do

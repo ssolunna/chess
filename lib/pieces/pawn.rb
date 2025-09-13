@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'piece'
+require_relative 'king'
 require_relative '../movements/pawn_movement'
 
 # Chess piece: The Pawn
@@ -17,13 +18,13 @@ class Pawn < Piece
   private
 
   def forward(board)
-    square_in_front = PawnMovement.in_front(@color, @current_square)
+    square_in_front = PawnMovement.in_front(color, current_square)
 
     square_in_front if empty_square?(square_in_front, board)
   end
 
   def two_squares_forward(board)
-    two_squares_in_front = PawnMovement.two_squares_in_front(@color, @current_square)
+    two_squares_in_front = PawnMovement.two_squares_in_front(color, current_square)
 
     two_squares_in_front if empty_square?(two_squares_in_front, board) && forward(board)
   end
@@ -31,8 +32,8 @@ class Pawn < Piece
   def taking(board)
     moves = []
 
-    square_on_right = PawnMovement.in_front('right', @color, @current_square)
-    square_on_left = PawnMovement.in_front('left', @color, @current_square)
+    square_on_right = PawnMovement.in_front('right', color, current_square)
+    square_on_left = PawnMovement.in_front('left', color, current_square)
 
     moves.push(square_on_right) if opponent_in_square?(square_on_right, board)
 
@@ -43,19 +44,19 @@ class Pawn < Piece
 
   # Special movement
   def taking_en_passant(board)
-    square_on_left = PawnMovement.left(@current_square)
-    square_on_right = PawnMovement.right(@current_square)
+    square_on_left = PawnMovement.left(current_square)
+    square_on_right = PawnMovement.right(current_square)
 
     if double_stepped?(board[square_on_left])
-      PawnMovement.en_passant(@color, square_on_left)
+      PawnMovement.en_passant(color, square_on_left)
     elsif double_stepped?(board[square_on_right])
-      PawnMovement.en_passant(@color, square_on_right)
+      PawnMovement.en_passant(color, square_on_right)
     end
   end
 
   def double_stepped?(opponent_pawn)
     return false unless opponent_pawn.is_a?(Pawn)
-    return false unless opponent_pawn.color != @color
+    return false unless opponent_pawn.color != color
     return false unless opponent_pawn.player.last_touched_piece?(opponent_pawn)
 
     opponent_pawn.moves_log.size == 2 && opponent_pawn.current_square.match?(en_passant_pattern(opponent_pawn.color))

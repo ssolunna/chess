@@ -119,6 +119,130 @@ RSpec.shared_examples 'a queen' do
       end
     end
   end
+
+  describe '#screen_legal_moves' do
+    context 'when queen is at f6' do
+      let(:current_square) { 'f6' }
+
+      context 'when legal moves are [g6, g7, e6, e5, d4, g5]' do
+        let(:legal_moves) { %w[g6 g7 e6 e5 d4 g5] }
+
+        context 'if king is in check at f7 by opponent queen at g6' do
+          it 'returns array of squares: g6' do
+            queen = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'g6')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('g6'))
+
+            board = { 'g6' => opponent,
+                      'f7' => instance_double('King', current_square: 'f7',
+                                                      color: color,
+                                                      is_a?: true),
+                      'h6' => ' ',
+                      'g7' => double(color: opponent_color, gives_check?: false),
+                      'e7' => double(color: color),
+                      'e6' => ' ',
+                      'e5' => ' ',
+                      'd4' => double(color: opponent_color, gives_check?: false),
+                      'g5' => double(color: opponent_color, gives_check?: false),
+                      'f5' => double(color: color),
+                      'f6' => queen }
+
+            expected_array = %w[g6]
+
+            selected_legal_moves = queen.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at f7 by opponent queen at d5' do
+          it 'returns array of squares: e6' do
+            queen = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'd5')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('d5'))
+
+            board = { 'd5' => opponent,
+                      'f7' => instance_double('King', current_square: 'f7',
+                                                      color: color,
+                                                      is_a?: true),
+                      'h6' => ' ',
+                      'g7' => double(color: opponent_color, gives_check?: false),
+                      'e7' => double(color: color),
+                      'e6' => ' ',
+                      'e5' => ' ',
+                      'd4' => double(color: opponent_color, gives_check?: false),
+                      'g5' => double(color: opponent_color, gives_check?: false),
+                      'f5' => double(color: color),
+                      'f6' => queen }
+
+            expected_array = %w[e6]
+
+            selected_legal_moves = queen.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+
+        context 'if king is in check at f7 by opponent queen at e8' do
+          it 'returns an empty array' do
+            queen = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'e8')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
+
+            board = { 'e8' => opponent,
+                      'f7' => instance_double('King', current_square: 'f7',
+                                                      color: color,
+                                                      is_a?: true),
+                      'h6' => ' ',
+                      'g7' => double(color: opponent_color, gives_check?: false),
+                      'e7' => double(color: color),
+                      'e6' => ' ',
+                      'e5' => ' ',
+                      'd4' => double(color: opponent_color, gives_check?: false),
+                      'g5' => double(color: opponent_color, gives_check?: false),
+                      'f5' => double(color: color),
+                      'f6' => queen }
+
+            selected_legal_moves = queen.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to be_empty
+          end
+        end
+
+        context 'if king is not in check at f7 by opponent queen at d7' do
+          it 'returns array of squares: g6, g7, e6, e5, d4, g5' do
+            queen = described_class.new(color, current_square)
+
+            opponent = described_class.new(opponent_color, 'd7')
+            opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
+
+            board = { 'd7' => opponent,
+                      'f7' => instance_double('King', current_square: 'f7',
+                                                      color: color,
+                                                      is_a?: true),
+                      'h6' => ' ',
+                      'g7' => double(color: opponent_color, gives_check?: false),
+                      'e7' => double(color: color),
+                      'e6' => ' ',
+                      'e5' => ' ',
+                      'd4' => double(color: opponent_color, gives_check?: false),
+                      'g5' => double(color: opponent_color, gives_check?: false),
+                      'f5' => double(color: color),
+                      'f6' => queen }
+
+            expected_array = legal_moves
+
+            selected_legal_moves = queen.screen_legal_moves(legal_moves, board)
+
+            expect(selected_legal_moves).to match_array(expected_array)
+          end
+        end
+      end
+    end
+  end
 end
 
 describe Queen do

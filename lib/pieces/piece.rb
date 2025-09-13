@@ -4,15 +4,61 @@
 class Piece
   EMPTY_SQUARE = ' '
 
-  attr_reader :color, :current_square, :moves, :legal_moves, :moves_log, :player
+  attr_reader :color, :moves, :legal_moves, :moves_log, :player
+
+  attr_accessor :current_square
 
   def initialize(color, square)
     @color = color
     @current_square = square
     @moves = nil
     @legal_moves = nil
-    @moves_log = [@current_square]
+    @moves_log = [current_square]
     @player = nil
+  end
+
+  # Select legal moves that do not put King in check after
+  def screen_legal_moves(legal_moves, board)
+    opponent_pieces = search_opponent_pieces(board)
+    moves_to_remove = []
+
+    legal_moves.each do |next_move|
+      copied_board = board.dup
+      copied_piece = dup
+
+      copied_board[next_move] = copied_piece
+      copied_board[copied_piece.current_square] = EMPTY_SQUARE
+      copied_piece.current_square = next_move
+
+      opponent_pieces.each do |opponent_piece|
+        moves_to_remove << next_move if opponent_piece.gives_check?(copied_board)
+      end
+    end
+
+    legal_moves - moves_to_remove
+  end
+
+  def gives_check?(board)
+    return false unless board.value?(self)
+    return false unless find_opponent_king(board)
+
+    search_legal_moves(board).include?(find_opponent_king(board).current_square)
+  end
+
+  private
+
+  def search_opponent_pieces(board)
+    board.select do |_square, piece|
+      piece != EMPTY_SQUARE &&
+        piece.color != color
+    end.values
+  end
+
+  def find_opponent_king(board)
+    board.select do |_square, piece|
+      piece.is_a?(King) &&
+        piece.color != color
+    end.values[0]
   end
 
   def opponent_in_square?(square, board)

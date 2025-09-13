@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'piece'
+require_relative 'king'
 require_relative '../movements/knight_movement'
 
 # Chess piece: The Knight
