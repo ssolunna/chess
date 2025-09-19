@@ -906,6 +906,39 @@ describe Pawn do
           end
         end
       end
+
+      context 'when current square is f5' do
+        let(:current_square) { 'f5' }
+
+        context 'when legal moves are [f6, e6, g6]' do
+          let(:legal_moves) { %w[f6 e6 g6] }
+
+          context 'if king is in check at f4 by opponent pawn at e5' do
+            it 'returns array of squares: e6' do
+              white_pawn = described_class.new(color, current_square)
+              white_pawn.instance_variable_set(:@player, player)
+
+              opponent = described_class.new(opponent_color, 'e5')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e5'))
+
+              board = { 'f5' => white_pawn,
+                        'f6' => ' ',
+                        'e6' => ' ',
+                        'e5' => opponent,
+                        'f4' => instance_double('King', current_square: 'f4',
+                                                        color: color,
+                                                        is_a?: true),
+                        'g6' => double(color: opponent_color, gives_check?: false) }
+
+              expected_array = %w[e6]
+
+              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to match_array(expected_array)
+            end
+          end
+        end
+      end
     end
 
     context 'with black pawns' do
@@ -992,6 +1025,39 @@ describe Pawn do
               selected_legal_moves = black_pawn.screen_legal_moves(legal_moves, board)
 
               expect(selected_legal_moves).to be_empty
+            end
+          end
+        end
+      end
+
+      context 'when current square is f4' do
+        let(:current_square) { 'f4' }
+
+        context 'when legal moves are [f3, e3, g3]' do
+          let(:legal_moves) { %w[f3 e3 g3] }
+
+          context 'if king is in check at f5 by opponent pawn at e4' do
+            it 'returns array of squares: e3' do
+              black_pawn = described_class.new(color, current_square)
+              black_pawn.instance_variable_set(:@player, player)
+
+              opponent = described_class.new(opponent_color, 'e4')
+              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e4'))
+
+              board = { 'f4' => black_pawn,
+                        'f3' => ' ',
+                        'e3' => ' ',
+                        'e4' => opponent,
+                        'f5' => instance_double('King', current_square: 'f5',
+                                                        color: color,
+                                                        is_a?: true),
+                        'g3' => double(color: opponent_color, gives_check?: false) }
+
+              expected_array = %w[e3]
+
+              selected_legal_moves = black_pawn.screen_legal_moves(legal_moves, board)
+
+              expect(selected_legal_moves).to match_array(expected_array)
             end
           end
         end
