@@ -3,12 +3,10 @@
 require_relative 'piece'
 require_relative 'king'
 require_relative '../movements/queen_movement'
-require_relative '../movements/chessboard_directions'
 
 # Chess piece: The Queen
 class Queen < Piece
   include QueenMovement
-  include Directions
 
   def search_legal_moves(board)
     legal_moves = []

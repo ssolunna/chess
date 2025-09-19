@@ -2,8 +2,11 @@
 
 require_relative './rook_movement'
 require_relative './bishop_movement'
+require_relative '../movements/chessboard_directions'
 
 module QueenMovement
+  include Directions
+
   @@movements = nil
 
   def moves_from(square)

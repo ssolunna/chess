@@ -2,6 +2,7 @@
 
 require_relative '../../lib/pieces/king'
 require_relative '../../lib/pieces/queen'
+require_relative '../../lib/player'
 require_relative '../../lib/movements/king_movement'
 
 RSpec.shared_examples 'a king' do
@@ -116,6 +117,7 @@ RSpec.shared_examples 'a king' do
         context 'if king is in check at f4 by opponent queen at d6' do
           it 'returns array of squares: f5, g5, g4, f3, e3, e4' do
             king = described_class.new(color, current_square)
+            king.instance_variable_set(:@player, player)
 
             opponent = Queen.new(opponent_color, 'd6')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d6'))
@@ -142,6 +144,7 @@ RSpec.shared_examples 'a king' do
         context 'if king is in check at f4 by opponent queen at f5' do
           it 'returns array of squares: f5 e3 g3' do
             king = described_class.new(color, current_square)
+            king.instance_variable_set(:@player, player)
 
             opponent = Queen.new(opponent_color, 'f5')
             opponent.instance_variable_set(:@moves, opponent.moves_from('f5'))
@@ -167,6 +170,7 @@ RSpec.shared_examples 'a king' do
         context 'if king is not in check at f4 by opponent queens at d5 and g6' do
           it 'returns array of squares: e3' do
             king = described_class.new(color, current_square)
+            king.instance_variable_set(:@player, player)
 
             opponent = Queen.new(opponent_color, 'd5')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d5'))
@@ -201,6 +205,7 @@ RSpec.shared_examples 'a king' do
         context 'if king is in check at f4 by opponent queen at g5' do
           it 'returns array of squares: e5, g5, f3, e4' do
             king = described_class.new(color, current_square)
+            king.instance_variable_set(:@player, player)
 
             opponent = Queen.new(opponent_color, 'g5')
             opponent.instance_variable_set(:@moves, opponent.moves_from('g5'))
@@ -235,6 +240,7 @@ RSpec.shared_examples 'a king' do
             but not in check by another opponent queen at b4' do
           it 'returns an empty array' do
             king = described_class.new(color, current_square)
+            king.instance_variable_set(:@player, player)
 
             opponent = Queen.new(opponent_color, 'c2')
             opponent.instance_variable_set(:@moves, opponent.moves_from('c2'))
@@ -263,6 +269,7 @@ RSpec.shared_examples 'a king' do
         context 'if king is not in check at a1 by opponent queen at c2' do
           it 'returns an empty array' do
             king = described_class.new(color, current_square)
+            king.instance_variable_set(:@player, player)
 
             opponent = Queen.new(opponent_color, 'c2')
             opponent.instance_variable_set(:@moves, opponent.moves_from('c2'))
@@ -288,6 +295,7 @@ end
 describe King do
   let!(:setup) { KingMovement.set_up }
   let!(:setup_queen) { QueenMovement.set_up }
+  let!(:player) { Player.new('color', {}) }
 
   context 'with white kings' do
     it_behaves_like 'a king' do

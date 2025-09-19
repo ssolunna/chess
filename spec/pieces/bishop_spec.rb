@@ -2,6 +2,7 @@
 
 require_relative '../../lib/pieces/bishop'
 require_relative '../../lib/movements/bishop_movement'
+require_relative '../../lib/player'
 
 RSpec.shared_examples 'a bishop' do
   describe '#search_legal_moves' do
@@ -127,6 +128,7 @@ RSpec.shared_examples 'a bishop' do
         context 'if king is in check at f5 by opponent bishop at d3' do
           it 'returns array of squares: d3' do
             bishop = described_class.new(color, current_square)
+            bishop.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'd3')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d3'))
@@ -155,6 +157,7 @@ RSpec.shared_examples 'a bishop' do
         context 'if king is in check at e6 by opponent bishop at c8' do
           it 'returns array of squares: d7' do
             bishop = described_class.new(color, current_square)
+            bishop.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'c8')
             opponent.instance_variable_set(:@moves, opponent.moves_from('c8'))
@@ -183,6 +186,7 @@ RSpec.shared_examples 'a bishop' do
         context 'if king is in check at e6 by opponent bishop at g8' do
           it 'returns an empty array' do
             bishop = described_class.new(color, current_square)
+            bishop.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'g8')
             opponent.instance_variable_set(:@moves, opponent.moves_from('g8'))
@@ -210,6 +214,7 @@ RSpec.shared_examples 'a bishop' do
         context 'if king is not in check at e6 by opponent bishop at g8' do
           it 'returns array of squares: a6, c4, c6, d3, d7' do
             bishop = described_class.new(color, current_square)
+            bishop.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'g8')
             opponent.instance_variable_set(:@moves, opponent.moves_from('g8'))
@@ -242,6 +247,7 @@ end
 
 describe Bishop do
   let!(:setup) { BishopMovement.set_up }
+  let!(:player) { Player.new('color', {}) }
 
   context 'with white bishops' do
     it_behaves_like 'a bishop' do

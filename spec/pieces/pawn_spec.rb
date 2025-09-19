@@ -2,6 +2,7 @@
 
 require_relative '../../lib/pieces/pawn'
 require_relative '../../lib/movements/pawn_movement'
+require_relative '../../lib/player'
 
 describe Pawn do
   describe '#search_legal_moves' do
@@ -815,6 +816,7 @@ describe Pawn do
 
   describe '#screen_legal_moves' do
     let!(:setup) { PawnMovement.set_up }
+    let!(:player) { Player.new('color', {}) }
 
     context 'with white pawns' do
       let(:color) { 'white' }
@@ -829,6 +831,7 @@ describe Pawn do
           context 'if king is in check at f2 by opponent pawn at e3' do
             it 'returns array of squares: e3' do
               white_pawn = described_class.new(color, current_square)
+              white_pawn.instance_variable_set(:@player, player)
 
               opponent = described_class.new(opponent_color, 'e3')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
@@ -854,6 +857,7 @@ describe Pawn do
           context 'if king is not in check at e2 by opponent pawn at e3' do
             it 'returns array of squares: d3, d4, e3, c3' do
               white_pawn = described_class.new(color, current_square)
+              white_pawn.instance_variable_set(:@player, player)
 
               opponent = described_class.new(opponent_color, 'e3')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
@@ -879,6 +883,7 @@ describe Pawn do
           context 'if king is in check at f2 by opponent pawn at g3' do
             it 'returns an empty array' do
               white_pawn = described_class.new(color, current_square)
+              white_pawn.instance_variable_set(:@player, player)
 
               opponent = described_class.new(opponent_color, 'g3')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g3'))
@@ -915,13 +920,14 @@ describe Pawn do
 
           context 'if king is in check at f7 by opponent pawn at e6' do
             it 'returns array of squares: e6' do
-              white_pawn = described_class.new(color, current_square)
+              black_pawn = described_class.new(color, current_square)
+              black_pawn.instance_variable_set(:@player, player)
 
               opponent = described_class.new(opponent_color, 'e6')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
               allow(opponent).to receive(:taking_en_passant)
 
-              board = { 'd7' => white_pawn,
+              board = { 'd7' => black_pawn,
                         'd6' => ' ',
                         'd5' => ' ',
                         'e6' => opponent,
@@ -932,7 +938,7 @@ describe Pawn do
 
               expected_array = %w[e6]
 
-              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+              selected_legal_moves = black_pawn.screen_legal_moves(legal_moves, board)
 
               expect(selected_legal_moves).to match_array(expected_array)
             end
@@ -940,13 +946,14 @@ describe Pawn do
 
           context 'if king is not in check at e7 by opponent pawn at e6' do
             it 'returns array of squares: d6, d5, e6, c6' do
-              white_pawn = described_class.new(color, current_square)
+              black_pawn = described_class.new(color, current_square)
+              black_pawn.instance_variable_set(:@player, player)
 
               opponent = described_class.new(opponent_color, 'e6')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
               allow(opponent).to receive(:taking_en_passant)
 
-              board = { 'd7' => white_pawn,
+              board = { 'd7' => black_pawn,
                         'd6' => ' ',
                         'd5' => ' ',
                         'e6' => opponent,
@@ -957,7 +964,7 @@ describe Pawn do
 
               expected_array = legal_moves
 
-              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+              selected_legal_moves = black_pawn.screen_legal_moves(legal_moves, board)
 
               expect(selected_legal_moves).to match_array(expected_array)
             end
@@ -965,13 +972,14 @@ describe Pawn do
 
           context 'if king is in check at f7 by opponent pawn at g6' do
             it 'returns an empty array' do
-              white_pawn = described_class.new(color, current_square)
+              black_pawn = described_class.new(color, current_square)
+              black_pawn.instance_variable_set(:@player, player)
 
               opponent = described_class.new(opponent_color, 'g6')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g6'))
               allow(opponent).to receive(:taking_en_passant)
 
-              board = { 'd7' => white_pawn,
+              board = { 'd7' => black_pawn,
                         'd6' => ' ',
                         'd5' => ' ',
                         'e6' => double(color: opponent_color, gives_check?: false),
@@ -981,7 +989,7 @@ describe Pawn do
                                                         is_a?: true),
                         'c6' => double(color: opponent_color, gives_check?: false) }
 
-              selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
+              selected_legal_moves = black_pawn.screen_legal_moves(legal_moves, board)
 
               expect(selected_legal_moves).to be_empty
             end

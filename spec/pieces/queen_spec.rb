@@ -2,6 +2,7 @@
 
 require_relative '../../lib/pieces/queen'
 require_relative '../../lib/movements/queen_movement'
+require_relative '../../lib/player'
 
 RSpec.shared_examples 'a queen' do
   describe '#search_legal_moves' do
@@ -130,6 +131,7 @@ RSpec.shared_examples 'a queen' do
         context 'if king is in check at f7 by opponent queen at g6' do
           it 'returns array of squares: g6' do
             queen = described_class.new(color, current_square)
+            queen.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'g6')
             opponent.instance_variable_set(:@moves, opponent.moves_from('g6'))
@@ -159,6 +161,7 @@ RSpec.shared_examples 'a queen' do
         context 'if king is in check at f7 by opponent queen at d5' do
           it 'returns array of squares: e6' do
             queen = described_class.new(color, current_square)
+            queen.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'd5')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d5'))
@@ -188,6 +191,7 @@ RSpec.shared_examples 'a queen' do
         context 'if king is in check at f7 by opponent queen at e8' do
           it 'returns an empty array' do
             queen = described_class.new(color, current_square)
+            queen.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'e8')
             opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
@@ -215,6 +219,7 @@ RSpec.shared_examples 'a queen' do
         context 'if king is not in check at f7 by opponent queen at d7' do
           it 'returns array of squares: g6, g7, e6, e5, d4, g5' do
             queen = described_class.new(color, current_square)
+            queen.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'd7')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
@@ -247,6 +252,7 @@ end
 
 describe Queen do
   let!(:setup) { QueenMovement.set_up }
+  let!(:player) { Player.new('color', {}) }
 
   context 'with white queens' do
     it_behaves_like 'a queen' do

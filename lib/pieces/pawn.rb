@@ -15,6 +15,10 @@ class Pawn < Piece
      taking_en_passant(board)].flatten.compact
   end
 
+  def taking_en_passant?(to_square, board)
+    empty_square?(to_square, board) && diagonal_move?(to_square)
+  end
+
   private
 
   def forward(board)
@@ -59,7 +63,13 @@ class Pawn < Piece
     return false unless opponent_pawn.color != color
     return false unless opponent_pawn.player.last_touched_piece?(opponent_pawn)
 
-    opponent_pawn.moves_log.size == 2 && opponent_pawn.current_square.match?(en_passant_pattern(opponent_pawn.color))
+    opponent_pawn.moves_log.size == 2 &&
+      opponent_pawn.current_square.match?(en_passant_pattern(opponent_pawn.color))
+  end
+
+  def diagonal_move?(to_square)
+    return true if PawnMovement.in_front('left', color, current_square) == to_square
+    return true if PawnMovement.in_front('right', color, current_square) == to_square
   end
 
   def en_passant_pattern(color)

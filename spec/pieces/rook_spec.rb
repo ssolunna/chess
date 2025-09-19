@@ -2,6 +2,7 @@
 
 require_relative '../../lib/pieces/rook'
 require_relative '../../lib/movements/rook_movement'
+require_relative '../../lib/player'
 
 RSpec.shared_examples 'a rook' do
   describe '#search_legal_moves' do
@@ -157,6 +158,7 @@ RSpec.shared_examples 'a rook' do
         context 'if king is in check at f7 by opponent rook at d7' do
           it 'returns array of squares: d7' do
             rook = described_class.new(color, current_square)
+            rook.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'd7')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
@@ -184,6 +186,7 @@ RSpec.shared_examples 'a rook' do
         context 'if king is in check at f7 by opponent rook at c7' do
           it 'returns array of squares: d7' do
             rook = described_class.new(color, current_square)
+            rook.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'c7')
             opponent.instance_variable_set(:@moves, opponent.moves_from('c7'))
@@ -212,6 +215,7 @@ RSpec.shared_examples 'a rook' do
         context 'if king is in check at e6 by opponent rook at e8' do
           it 'returns an empty array' do
             rook = described_class.new(color, current_square)
+            rook.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'e8')
             opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
@@ -238,6 +242,7 @@ RSpec.shared_examples 'a rook' do
         context 'if king is not in check at e6 by opponent rook at e8' do
           it 'returns array of squares: d6, d7, e5, d4, d3' do
             rook = described_class.new(color, current_square)
+            rook.instance_variable_set(:@player, player)
 
             opponent = described_class.new(opponent_color, 'e8')
             opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
@@ -269,6 +274,7 @@ end
 
 describe Rook do
   let!(:setup) { RookMovement.set_up }
+  let!(:player) { Player.new('color', {}) }
 
   context 'with white rooks' do
     it_behaves_like 'a rook' do
