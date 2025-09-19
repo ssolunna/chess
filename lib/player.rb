@@ -20,8 +20,7 @@ class Player
   end
 
   def move!(to_square, touched_piece = @touched_piece, board = @board.chessboard)
-    take_en_passant(touched_piece, to_square, board) if touched_piece.is_a?(Pawn) &&
-                                                        touched_piece.taking_en_passant?(to_square, board)
+    take_en_passant(touched_piece, to_square, board) if taking_en_passant?(touched_piece, to_square, board)
 
     board[to_square] = touched_piece
     board[touched_piece.current_square] = EMPTY_SQUARE
@@ -49,5 +48,32 @@ class Player
         break
       end
     end
+  end
+
+  def taking_en_passant?(piece, to_square, board)
+    return unless piece.is_a?(Pawn)
+
+    empty_square?(to_square, board) && diagonal_move?(piece, to_square)
+  end
+
+  def diagonal_move?(piece, to_square)
+    directions = [method(:up_leftward),
+                  method(:up_rightward),
+                  method(:down_leftward),
+                  method(:down_rightward)]
+
+    directions.each do |direction|
+      direction.call(piece.current_square) do |next_square|
+        return true if next_square == to_square
+
+        break
+      end
+    end
+
+    false
+  end
+
+  def empty_square?(square, board)
+    board[square] == EMPTY_SQUARE
   end
 end
