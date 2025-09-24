@@ -627,6 +627,8 @@ RSpec.shared_examples 'a king' do
         context 'if king is not in check at e8 but
             opponent queen is at e6 attacking square g8' do
           it 'returns array of squares: d8, f8' do
+            allow(player).to receive(:castling_move_rook)
+
             opponent = Queen.new(opponent_color, 'e6')
 
             board = { 'e8' => king,
