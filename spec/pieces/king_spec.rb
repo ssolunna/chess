@@ -413,6 +413,33 @@ RSpec.shared_examples 'a king' do
         end
       end
     end
+
+    context 'when king is at e8 but there are no rooks' do
+      let(:current_square) { 'e8' }
+      let(:king) { described_class.new(color, current_square) }
+
+      let(:board) do
+        { 'e8' => king,
+          'a8' => ' ',
+          'b8' => ' ',
+          'c8' => ' ',
+          'd8' => ' ',
+          'd7' => ' ',
+          'e7' => ' ',
+          'f7' => double(color: color),
+          'f8' => ' ',
+          'g8' => ' ',
+          'h8' => ' ' }
+      end
+
+      context 'when all castling conditions are met' do
+        it 'should not include c8 or g8' do
+          king.instance_variable_set(:@moves, king.moves_from(current_square))
+
+          expect(king.search_legal_moves(board)).not_to include('c8', 'g8')
+        end
+      end
+    end
   end
 
   describe '#screen_legal_moves' do
