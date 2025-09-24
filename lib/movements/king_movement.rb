@@ -4,6 +4,7 @@ require_relative '../movements/chessboard_directions'
 
 module KingMovement
   extend Directions
+  include Directions
 
   @@movements = nil
 

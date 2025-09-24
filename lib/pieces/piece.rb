@@ -43,6 +43,12 @@ class Piece
     search_legal_moves(board).include?(find_opponent_king(board).current_square)
   end
 
+  def attacking_square?(square, board)
+    return false unless board.value?(self)
+
+    search_legal_moves(board).include?(square)
+  end
+
   private
 
   def search_opponent_pieces(board)
