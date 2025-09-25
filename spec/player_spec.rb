@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 require_relative '../lib/player'
-require_relative '../lib/pieces/pawn'
 
 describe Player do
-  subject(:player) { Player.new('color', {}) }
+  subject(:player) { described_class.new('color', {}) }
   let(:empty_square) { ' ' }
 
   describe '#move!' do
@@ -64,37 +63,45 @@ describe Player do
       end
     end
 
-    context 'when white pawn makes an en passant movement' do
-      it 'remove the double-stepping black pawn from the chessboard' do
-        current_square = 'g5'
-        double_stepped_square = 'h5'
-        square_passed_over = 'h6'
+    context 'when white pawn at g5 makes an en passant movement to h6' do
+      let(:current_square) { 'g5' }
+      let(:black_initial_square) { 'h7' }
+      let(:double_stepped_square) { 'h5' }
+      let(:square_passed_over) { 'h6' }
 
-        white_pawn = Pawn.new('white', current_square)
-        black_pawn = Pawn.new('black', double_stepped_square)
+      let(:white_pawn) do
+        double('WhitePawn', color: 'white',
+                            current_square: current_square,
+                            moves_log: [current_square])
+      end
 
-        board = double('Board', chessboard: { 'g5' => white_pawn, 'h5' => black_pawn, 'h6' => empty_square })
+      let(:black_pawn) do
+        double('BlackPawn', color: 'black',
+                            current_square: double_stepped_square,
+                            moves_log: [black_initial_square, double_stepped_square])
+      end
 
+      let(:board) do
+        double('Board', chessboard: { current_square => white_pawn,
+                                      double_stepped_square => black_pawn,
+                                      square_passed_over => ' ' })
+      end
+
+      before do
         player.instance_variable_set(:@board, board)
+        allow(player).to receive(:castling?)
+        allow(white_pawn).to receive(:current_square=).with(square_passed_over)
+        allow(white_pawn).to receive(:is_a?).with(Pawn).and_return(true)
+      end
 
+      it 'remove the double-stepping black pawn at h5 from the chessboard' do
         expect { player.move!(square_passed_over, white_pawn, board.chessboard) }
           .to change { board.chessboard }
           .from(include(double_stepped_square => black_pawn))
           .to(hash_not_including(have_value(black_pawn)))
       end
 
-      it 'change double stepped square value to empty on the chessboard' do
-        current_square = 'g5'
-        double_stepped_square = 'h5'
-        square_passed_over = 'h6'
-
-        white_pawn = Pawn.new('white', current_square)
-        black_pawn = Pawn.new('black', double_stepped_square)
-
-        board = double('Board', chessboard: { 'g5' => white_pawn, 'h5' => black_pawn, 'h6' => empty_square })
-
-        player.instance_variable_set(:@board, board)
-
+      it 'change h5 key to empty value on the chessboard' do
         expect { player.move!(square_passed_over, white_pawn, board.chessboard) }
           .to change { board.chessboard }
           .from(include(double_stepped_square => black_pawn))
@@ -102,19 +109,38 @@ describe Player do
       end
     end
 
-    context 'when black pawn makes an en passant movement' do
-      it 'remove the double-stepping white pawn from the chessboard' do
-        current_square = 'b4'
-        double_stepped_square = 'a4'
-        square_passed_over = 'a3'
+    context 'when black pawn at b4 makes an en passant movement to a3' do
+      let(:current_square) { 'b4' }
+      let(:white_initial_square) { 'a2' }
+      let(:double_stepped_square) { 'a4' }
+      let(:square_passed_over) { 'a3' }
 
-        black_pawn = Pawn.new('black', current_square)
-        white_pawn = Pawn.new('white', double_stepped_square)
+      let(:black_pawn) do
+        double('BlackPawn', color: 'black',
+                            current_square: current_square,
+                            moves_log: [current_square])
+      end
 
-        board = double('Board', chessboard: { 'b4' => black_pawn, 'a4' => white_pawn, 'a3' => empty_square })
+      let(:white_pawn) do
+        double('BlackPawn', color: 'white',
+                            current_square: double_stepped_square,
+                            moves_log: [white_initial_square, double_stepped_square])
+      end
 
+      let(:board) do
+        double('Board', chessboard: { current_square => black_pawn,
+                                      double_stepped_square => white_pawn,
+                                      square_passed_over => ' ' })
+      end
+
+      before do
         player.instance_variable_set(:@board, board)
+        allow(player).to receive(:castling?)
+        allow(black_pawn).to receive(:current_square=).with(square_passed_over)
+        allow(black_pawn).to receive(:is_a?).with(Pawn).and_return(true)
+      end
 
+      it 'remove the double-stepping white pawn from the chessboard' do
         expect { player.move!(square_passed_over, black_pawn, board.chessboard) }
           .to change { board.chessboard }
           .from(include(double_stepped_square => white_pawn))
@@ -122,17 +148,6 @@ describe Player do
       end
 
       it 'change double stepped square value to empty on the chessboard' do
-        current_square = 'b4'
-        double_stepped_square = 'a4'
-        square_passed_over = 'a3'
-
-        black_pawn = Pawn.new('black', current_square)
-        white_pawn = Pawn.new('white', double_stepped_square)
-
-        board = double('Board', chessboard: { 'b4' => black_pawn, 'a4' => white_pawn, 'a3' => empty_square })
-
-        player.instance_variable_set(:@board, board)
-
         expect { player.move!(square_passed_over, black_pawn, board.chessboard) }
           .to change { board.chessboard }
           .from(include(double_stepped_square => white_pawn))
