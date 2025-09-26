@@ -6,11 +6,11 @@ require_relative '../../lib/movements/pawn_movement'
 describe PawnMovement do
   include MyHelpers
 
-  describe '.lay_out' do
-    let(:movements) { described_class.class_variable_get(:@@movements) }
+  describe '.set_up' do
+    setup = described_class.set_up
 
     it 'returns a hash containing 56 white and black pawns movements' do
-      expect(described_class.lay_out).to match(
+      expect(setup).to match(
         'white' => be_a_hash_of_size(56),
         'black' => be_a_hash_of_size(56)
       )
@@ -19,7 +19,7 @@ describe PawnMovement do
     it 'expects all white pawn movements to be between ranges a-h and 2-8' do
       white_square_pattern = /^[a-h][2-8]$/
 
-      expect(described_class.lay_out['white']).to all match(
+      expect(setup['white']).to all match(
         a_collection_containing_exactly(
           match(white_square_pattern),
           (be_an(Array).and all match(white_square_pattern))
@@ -30,18 +30,22 @@ describe PawnMovement do
     it 'expects all black pawn movements to be between ranges a-h and 1-7' do
       black_square_pattern = /^[a-h][1-7]$/
 
-      expect(described_class.lay_out['black']).to all match(
+      expect(setup['black']).to all match(
         a_collection_containing_exactly(
           match(black_square_pattern),
           (be_an(Array).and all match(black_square_pattern))
         )
       )
     end
+
+    it 'changes movements class variable to the hash' do
+      movements = described_class.class_variable_get(:@@movements)
+
+      expect(movements).to eq(setup)
+    end
   end
 
   describe '#moves_from' do
-    let!(:setup) { described_class.set_up }
-
     context 'with white pawns' do
       let(:color) { 'white' }
       let(:white_pawn) { Class.new { extend PawnMovement } }

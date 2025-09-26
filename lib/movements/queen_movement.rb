@@ -17,6 +17,8 @@ module QueenMovement
     @@movements = lay_out
   end
 
+  private
+
   def self.lay_out
     layout = RookMovement.lay_out
     bishop_movements = BishopMovement.lay_out

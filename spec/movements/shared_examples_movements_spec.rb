@@ -2,21 +2,29 @@
 
 require_relative '../scoped_matchers_spec'
 
-RSpec.shared_examples ".lay_out method" do
+RSpec.shared_examples '.set_up method' do
   include MyHelpers
 
-  it 'returns a hash of 64 movements (hash keys)' do
-    expect(described_class.lay_out).to be_a_hash_of_size(64)
+  setup = described_class.set_up
+
+  it 'return a hash of 64 movements (keys)' do
+    expect(setup).to be_a_hash_of_size(64)
   end
 
-  it 'expects all keys and values to be between the ranges a-h and 1-8' do
+  it 'expect all keys and values in the hash to be in the ranges a-h and 1-8' do
     pattern = /^[a-h][1-8]$/
 
-    expect(described_class.lay_out).to all match(
+    expect(setup).to all match(
       a_collection_containing_exactly(
         match(pattern),
         (be_an(Array).and all match(pattern))
       )
     )
+  end
+
+  it 'change movements class variable to the hash' do
+    movements = described_class.class_variable_get(:@@movements)
+
+    expect(movements).to eq(setup)
   end
 end

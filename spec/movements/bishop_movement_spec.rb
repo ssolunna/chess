@@ -4,13 +4,12 @@ require_relative './shared_examples_movements_spec'
 require_relative '../../lib/movements/bishop_movement'
 
 describe BishopMovement do
-  describe '.lay_out' do
-    include_examples '.lay_out method'
+  describe '.set_up' do
+    include_examples '.set_up method'
   end
 
   describe '#from' do
     let(:bishop) { Class.new { extend BishopMovement } }
-    let!(:setup) { described_class.set_up }
 
     context 'when current square is a1' do
       it 'returns an array of moves: b2, c3, d4, e5, f6, g7, h8' do
@@ -31,7 +30,8 @@ describe BishopMovement do
     end
 
     context 'when current square is d4' do
-      it 'returns an array of moves: c5, b6, a7, e5, f6, g7, h8, c3, b2, a1, e3, f2, g1' do
+      it 'returns an array of moves: c5, b6, a7, e5, f6, g7, h8, c3, b2, a1,
+      e3, f2, g1' do
         current_square = 'd4'
         expected_moves = %w[c5 b6 a7 e5 f6 g7 h8 c3 b2 a1 e3 f2 g1]
         moves = bishop.moves_from(current_square)

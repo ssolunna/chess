@@ -16,6 +16,8 @@ module KingMovement
     @@movements = lay_out
   end
 
+  private
+
   def self.lay_out(layout = {}, queue = ['a1'])
     return layout if queue.empty?
 

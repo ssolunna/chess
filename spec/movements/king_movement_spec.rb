@@ -4,13 +4,12 @@ require_relative './shared_examples_movements_spec'
 require_relative '../../lib/movements/king_movement'
 
 describe KingMovement do
-  describe '.lay_out' do
-    include_examples '.lay_out method'
+  describe '.set_up' do
+    include_examples '.set_up method'
   end
 
   describe '#from' do
     let(:king) { Class.new { extend KingMovement } }
-    let!(:setup) { described_class.set_up }
 
     context 'when current square is e8' do
       it 'returns an array of moves: e7, d7, f7, d8, f8' do

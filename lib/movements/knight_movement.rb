@@ -15,6 +15,8 @@ module KnightMovement
     @@movements = lay_out
   end
 
+  private
+
   def self.lay_out(layout = {}, queue = ['b1'])
     return layout if queue.empty?
 

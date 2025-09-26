@@ -18,6 +18,8 @@ module PawnMovement
     @@movements = lay_out
   end
 
+  private
+
   def self.lay_out(layout = { 'white' => {}, 'black' => {} }, color = 'white', queue = [*WHITE_STARTING_ROW])
     return layout if color == 'black' && queue.empty?
 
