@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/pieces/bishop'
-require_relative '../../lib/movements/bishop_movement'
 require_relative '../../lib/player'
 
 RSpec.shared_examples 'a bishop' do
@@ -246,7 +245,8 @@ RSpec.shared_examples 'a bishop' do
 end
 
 describe Bishop do
-  let!(:setup) { BishopMovement.set_up }
+  BishopMovement.set_up
+
   let!(:player) { Player.new('color', {}) }
 
   context 'with white bishops' do

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/pieces/pawn'
-require_relative '../../lib/movements/pawn_movement'
 require_relative '../../lib/player'
 
 describe Pawn do

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/pieces/knight'
-require_relative '../../lib/movements/knight_movement'
 require_relative '../../lib/player'
 
 RSpec.shared_examples 'a knight' do
@@ -249,7 +248,8 @@ RSpec.shared_examples 'a knight' do
 end
 
 describe Knight do
-  let!(:setup) { KnightMovement.set_up }
+  KnightMovement.set_up
+
   let!(:player) { Player.new('color', {}) }
 
   context 'with white knights' do

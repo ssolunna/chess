@@ -3,7 +3,6 @@
 require_relative '../../lib/pieces/king'
 require_relative '../../lib/pieces/queen'
 require_relative '../../lib/player'
-require_relative '../../lib/movements/king_movement'
 
 RSpec.shared_examples 'a king' do
   describe '#search_legal_moves' do
@@ -654,8 +653,8 @@ RSpec.shared_examples 'a king' do
 end
 
 describe King do
-  let!(:setup) { KingMovement.set_up }
-  let!(:setup_queen) { QueenMovement.set_up }
+  KingMovement.set_up
+  QueenMovement.set_up
 
   context 'with white kings' do
     it_behaves_like 'a king' do
