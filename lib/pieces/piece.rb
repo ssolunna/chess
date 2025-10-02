@@ -8,13 +8,13 @@ class Piece
 
   attr_accessor :current_square
 
-  def initialize(color, square)
+  def initialize(color, square, player = nil)
     @color = color
     @current_square = square
     @moves = nil
     @legal_moves = nil
     @moves_log = [current_square]
-    @player = nil
+    @player = player
   end
 
   # Select legal moves that do not put King in check after

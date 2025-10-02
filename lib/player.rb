@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 require_relative './movements/chessboard_directions'
-require_relative './pieces/pawn'
 require_relative './pieces/king'
+require_relative './pieces/queen'
+require_relative './pieces/rook'
+require_relative './pieces/bishop'
+require_relative './pieces/knight'
+require_relative './pieces/pawn'
 
 # Player of Chess
 class Player
@@ -10,7 +14,7 @@ class Player
 
   EMPTY_SQUARE = ' '
 
-  attr_reader :pieces_moved_log
+  attr_reader :color, :board, :pieces_moved_log
 
   def initialize(color, board)
     @color = color
@@ -32,11 +36,36 @@ class Player
     touched_piece.moves_log << to_square
   end
 
+  def promote(pawn)
+    return unless pawn.is_a?(Pawn)
+    return unless promoteable?(pawn)
+
+    options_regex = /^(queen|rook|bishop|knight)$/
+
+    chosen_piece = player_input(options_regex)
+
+    new_piece = create_piece(chosen_piece.capitalize, pawn.current_square)
+
+    board.chessboard[pawn.current_square] = new_piece
+  end
+
+  def promoteable?(pawn)
+    return unless pawn.is_a?(Pawn)
+
+    last_row_pattern = { 'white' => /^[a-h][8]$/, 'black' => /^[a-h][1]$/ }
+
+    pawn.current_square.match?(last_row_pattern[pawn.color])
+  end
+
   def last_touched_piece?(piece)
     pieces_moved_log.last == piece
   end
 
   private
+
+  def create_piece(piece, square)
+    Object.const_get(piece).new(color, square, self)
+  end
 
   def take_en_passant(pawn, to_square, board)
     if pawn.color == 'white'
@@ -135,5 +164,13 @@ class Player
 
   def empty_square?(square, board)
     board[square] == EMPTY_SQUARE
+  end
+
+  def player_input(regex_pattern)
+    loop do
+      user_input = gets.chomp.downcase
+
+      return user_input if user_input.match?(regex_pattern)
+    end
   end
 end

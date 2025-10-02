@@ -3,63 +3,66 @@
 require_relative '../lib/player'
 
 describe Player do
-  subject(:player) { described_class.new('color', {}) }
   let(:empty_square) { ' ' }
 
   describe '#move!' do
-    let(:current_square) { 'b2' }
-    let(:next_square) { 'b3' }
-    let(:piece) { double('Piece', current_square: current_square, moves_log: [current_square]) }
-    let(:board) { double('Board', chessboard: { 'b2' => piece, 'b3' => empty_square }) }
+    subject(:player) { described_class.new('color', {}) }
 
-    before do
-      player.instance_variable_set(:@board, board)
-      allow(piece).to receive(:current_square=)
-    end
+    context 'when any piece moves to an empty square' do
+      let(:current_square) { 'b2' }
+      let(:next_square) { 'b3' }
+      let(:piece) { double('Piece', current_square: current_square, moves_log: [current_square]) }
+      let(:board) { double('Board', chessboard: { 'b2' => piece, 'b3' => empty_square }) }
 
-    it 'assign piece current square to next square' do
-      expect(piece).to receive(:current_square=).with(next_square)
-
-      player.move!(next_square, piece, board.chessboard)
-    end
-
-    it 'change next square value to piece on the chessboard' do
-      expect { player.move!(next_square, piece, board.chessboard) }
-        .to change { board.chessboard[next_square] }
-        .to(piece)
-    end
-
-    it 'change current square value to empty on the chessboard' do
-      expect { player.move!(next_square, piece, board.chessboard) }
-        .to change { board.chessboard[current_square] }
-        .from(piece)
-        .to(empty_square)
-    end
-
-    it 'add piece to player pieces moved log' do
-      expect { player.move!(next_square, piece, board.chessboard) }
-        .to change { player.pieces_moved_log }
-        .to(include(piece))
-    end
-
-    it 'add next square to piece moves log' do
-      expect { player.move!(next_square, piece, board.chessboard) }
-        .to change { piece.moves_log }
-        .to(include(next_square))
-    end
-
-    context 'when there is an opponent piece on the next square' do
-      it 'remove the opponent piece from the chessboard' do
-        opponent = double('Piece', current_square: next_square, moves_log: [next_square])
-
-        board = double('Board', chessboard: { 'b2' => piece, 'b3' => opponent })
-
+      before do
         player.instance_variable_set(:@board, board)
+        allow(piece).to receive(:current_square=)
+      end
 
+      it 'assign piece current square to next square' do
+        expect(piece).to receive(:current_square=).with(next_square)
+
+        player.move!(next_square, piece, board.chessboard)
+      end
+
+      it 'change next square value to piece on the chessboard' do
         expect { player.move!(next_square, piece, board.chessboard) }
-          .to change { board.chessboard }
-          .from(include(next_square => opponent))
-          .to(hash_not_including(have_value(opponent)))
+          .to change { board.chessboard[next_square] }
+          .to(piece)
+      end
+
+      it 'change current square value to empty on the chessboard' do
+        expect { player.move!(next_square, piece, board.chessboard) }
+          .to change { board.chessboard[current_square] }
+          .from(piece)
+          .to(empty_square)
+      end
+
+      it 'add piece to player pieces moved log' do
+        expect { player.move!(next_square, piece, board.chessboard) }
+          .to change { player.pieces_moved_log }
+          .to(include(piece))
+      end
+
+      it 'add next square to piece moves log' do
+        expect { player.move!(next_square, piece, board.chessboard) }
+          .to change { piece.moves_log }
+          .to(include(next_square))
+      end
+
+      context 'when there is an opponent piece on the next square' do
+        it 'remove the opponent piece from the chessboard' do
+          opponent = double('Piece', current_square: next_square, moves_log: [next_square])
+
+          board = double('Board', chessboard: { 'b2' => piece, 'b3' => opponent })
+
+          player.instance_variable_set(:@board, board)
+
+          expect { player.move!(next_square, piece, board.chessboard) }
+            .to change { board.chessboard }
+            .from(include(next_square => opponent))
+            .to(hash_not_including(have_value(opponent)))
+        end
       end
     end
 
@@ -286,6 +289,97 @@ describe Player do
             .to change { board.chessboard }
             .from(include(rook_at_square => rook))
             .to(include(rook_at_square => empty_square))
+        end
+      end
+    end
+  end
+
+  describe '#promote' do
+    pawn_no_last_rows = { 'white' => %w[a1 b2 c3 d4 e5 f6 g7 h7],
+                          'black' => %w[a8 b7 c6 d5 e4 f3 g2 h2] }
+
+    pawn_last_rows = { 'white' => %w[a8 b8 c8 d8 e8 f8 g8 h8],
+                       'black' => %w[a1 b1 c1 d1 e1 f1 g1 h1] }
+
+    %w[white black].each do |color|
+      context "when #{color} pawn has not reached the last row" do
+        pawn_no_last_rows[color].each do |no_last_row|
+          context "when #{color} pawn is in the #{no_last_row} row" do
+            let(:pawn) { double('Pawn', color: color, current_square: no_last_row, moves_log: [no_last_row]) }
+
+            let(:board) { double('Board', chessboard: { no_last_row => pawn }) }
+
+            subject(:player) { described_class.new(color, board) }
+
+            before do
+              allow(pawn).to receive(:is_a?).with(Pawn).and_return(true)
+            end
+
+            it 'returns false' do
+              expect(player.promote(pawn)).to be_falsey
+            end
+
+            it 'does not ask user for input about piece to promote pawn to' do
+              expect(player).not_to receive(:gets)
+
+              player.promote(pawn)
+            end
+
+            it 'does not change the chessboard' do
+              expect { player.promote(pawn) }
+                .not_to change { player.board.chessboard }
+            end
+          end
+        end
+      end
+
+      pawn_last_rows[color].each do |last_row|
+        context "when #{color} pawn reaches the last row at #{last_row}" do
+          let(:pawn) { double('Pawn', color: color, current_square: last_row, moves_log: [last_row]) }
+
+          let(:board) { double('Board', chessboard: { last_row => pawn }) }
+
+          subject(:player) { described_class.new(color, board) }
+
+          before do
+            allow(pawn).to receive(:is_a?).with(Pawn).and_return(true)
+          end
+
+          it 'asks user for input about piece to promote pawn to' do
+            expect(player).to receive(:gets).and_return('queen')
+
+            player.promote(pawn)
+          end
+
+          %w[Queen Rook Knight Bishop].each do |chosen_piece|
+            context "if user chooses to promote the pawn to a #{chosen_piece}" do
+              before do
+                allow(player).to receive(:gets).and_return(chosen_piece)
+              end
+
+              it "returns a new, same-color #{chosen_piece} piece on #{last_row}" do
+                expect(player.promote(pawn))
+                  .to be_a(Object.const_get(chosen_piece))
+                  .and have_attributes(color: color)
+                  .and have_attributes(current_square: last_row)
+                  .and have_attributes(player: player)
+              end
+
+              it "places the #{chosen_piece} to #{last_row} on chessboard" do
+                new_piece = player.promote(pawn)
+
+                expect(player.board.chessboard)
+                  .to(include(last_row => new_piece))
+              end
+
+              it 'removes pawn from the board' do
+                expect { player.promote(pawn) }
+                  .to change { player.board.chessboard }
+                  .from(include(last_row => pawn))
+                  .to(hash_not_including(have_value(pawn)))
+              end
+            end
+          end
         end
       end
     end
