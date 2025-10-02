@@ -159,20 +159,35 @@ describe Player do
     end
 
     context 'when king makes a castling move' do
-      let(:color) { 'white' }
-      let(:king) { double('King', color: color, current_square: current_square, moves_log: [current_square]) }
-      let(:rook) { double('Rook', color: color, current_square: rook_at_square, moves_log: [rook_at_square]) }
+      let(:king) do
+        double('King', color: color,
+                       current_square: current_square,
+                       moves_log: [current_square])
+      end
+
+      let(:rook) do
+        double('Rook', color: color,
+                       current_square: rook_at_square,
+                       moves_log: [rook_at_square])
+      end
+
+      let(:second_rook) do
+        double('SecondRook', color: color,
+                             current_square: second_rook_at_square,
+                             moves_log: [second_rook_at_square])
+      end
 
       let(:board) do
         double('Board', chessboard: { current_square => king,
                                       rook_at_square => rook,
+                                      second_rook_at_square => second_rook,
                                       square_moved_over => empty_square,
                                       to_square => empty_square })
       end
 
       before do
         player.instance_variable_set(:@board, board)
-        player.instance_variable_set(:@pieces, [king, rook])
+        player.instance_variable_set(:@pieces, [king, rook, second_rook])
 
         allow(king).to receive(:is_a?).with(Pawn).and_return(false)
         allow(king).to receive(:is_a?).with(Rook).and_return(false)
@@ -183,113 +198,124 @@ describe Player do
         allow(rook).to receive(:is_a?).with(King).and_return(false)
         allow(rook).to receive(:is_a?).with(Rook).and_return(true)
         allow(rook).to receive(:current_square=)
+
+        allow(second_rook).to receive(:is_a?).with(Pawn).and_return(false)
+        allow(second_rook).to receive(:is_a?).with(King).and_return(false)
+        allow(second_rook).to receive(:is_a?).with(Rook).and_return(true)
+        allow(second_rook).to receive(:current_square=)
       end
 
-      context 'when king at e1 moves to g1' do
+      context 'when white king at e1, one rook at a1 and another rook at h1' do
+        let(:color) { 'white' }
         let(:current_square) { 'e1' }
-        let(:square_moved_over) { 'f1' }
-        let(:to_square) { 'g1' }
-        let(:rook_at_square) { 'h1' }
-
-        it 'change Rook current square to f1' do
-          expect(rook).to receive(:current_square=).with(square_moved_over)
-
-          player.move!(to_square, king, board.chessboard)
-        end
-
-        it 'move Rook to f1 on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(square_moved_over => empty_square))
-            .to(include(square_moved_over => rook))
-        end
-
-        it 'change h1 key to empty value on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(rook_at_square => rook))
-            .to(include(rook_at_square => empty_square))
-        end
-      end
-
-      context 'when king at e1 moves to c1' do
-        let(:current_square) { 'e1' }
-        let(:square_moved_over) { 'd1' }
-        let(:to_square) { 'c1' }
         let(:rook_at_square) { 'a1' }
+        let(:second_rook_at_square) { 'h1' }
 
-        it 'change Rook current square to d1' do
-          expect(rook).to receive(:current_square=).with(square_moved_over)
+        context 'when king moves to c1' do
+          let(:to_square) { 'c1' }
+          let(:square_moved_over) { 'd1' }
 
-          player.move!(to_square, king, board.chessboard)
+          it 'change Rook current square at a1 to d1' do
+            expect(rook).to receive(:current_square=).with(square_moved_over)
+
+            player.move!(to_square, king, board.chessboard)
+          end
+
+          it 'move Rook from a1 to d1 on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(square_moved_over => empty_square))
+              .to(include(square_moved_over => rook))
+          end
+
+          it 'change a1 key to empty value on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(rook_at_square => rook))
+              .to(include(rook_at_square => empty_square))
+          end
         end
 
-        it 'move Rook to d1 on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(square_moved_over => empty_square))
-            .to(include(square_moved_over => rook))
-        end
+        context 'when king moves to g1' do
+          let(:to_square) { 'g1' }
+          let(:square_moved_over) { 'f1' }
 
-        it 'change a1 key to empty value on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(rook_at_square => rook))
-            .to(include(rook_at_square => empty_square))
+          it 'change Rook current square at h1 to f1' do
+            expect(second_rook).to receive(:current_square=).with(square_moved_over)
+
+            player.move!(to_square, king, board.chessboard)
+          end
+
+          it 'move Rook from h1 to f1 on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(square_moved_over => empty_square))
+              .to(include(square_moved_over => second_rook))
+          end
+
+          it 'change h1 key to empty value on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(second_rook_at_square => second_rook))
+              .to(include(second_rook_at_square => empty_square))
+          end
         end
       end
 
-      context 'when king at e8 moves to g8' do
+      context 'when black king at e8, one rook at a8 and another rook at h8' do
+        let(:color) { 'black' }
         let(:current_square) { 'e8' }
-        let(:square_moved_over) { 'f8' }
-        let(:to_square) { 'g8' }
-        let(:rook_at_square) { 'h8' }
-
-        it 'change Rook current square to d8' do
-          expect(rook).to receive(:current_square=).with(square_moved_over)
-
-          player.move!(to_square, king, board.chessboard)
-        end
-
-        it 'move Rook to d8 on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(square_moved_over => empty_square))
-            .to(include(square_moved_over => rook))
-        end
-
-        it 'change a8 key to empty value on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(rook_at_square => rook))
-            .to(include(rook_at_square => empty_square))
-        end
-      end
-
-      context 'when king at e8 moves to c8' do
-        let(:current_square) { 'e8' }
-        let(:square_moved_over) { 'd8' }
-        let(:to_square) { 'c8' }
         let(:rook_at_square) { 'a8' }
+        let(:second_rook_at_square) { 'h8' }
 
-        it 'change Rook current square to d8' do
-          expect(rook).to receive(:current_square=).with(square_moved_over)
+        context 'when king moves to c8' do
+          let(:to_square) { 'c8' }
+          let(:square_moved_over) { 'd8' }
 
-          player.move!(to_square, king, board.chessboard)
+          it 'change Rook current square at a8 to d8' do
+            expect(rook).to receive(:current_square=).with(square_moved_over)
+
+            player.move!(to_square, king, board.chessboard)
+          end
+
+          it 'move Rook from a8 to d8 on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(square_moved_over => empty_square))
+              .to(include(square_moved_over => rook))
+          end
+
+          it 'change a8 key to empty value on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(rook_at_square => rook))
+              .to(include(rook_at_square => empty_square))
+          end
         end
 
-        it 'move Rook to d8 on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(square_moved_over => empty_square))
-            .to(include(square_moved_over => rook))
-        end
+        context 'when king moves to g8' do
+          let(:to_square) { 'g8' }
+          let(:square_moved_over) { 'f8' }
 
-        it 'change a8 key to empty value on chessboard' do
-          expect { player.move!(to_square, king, board.chessboard) }
-            .to change { board.chessboard }
-            .from(include(rook_at_square => rook))
-            .to(include(rook_at_square => empty_square))
+          it 'change Rook current square at h8 to f8' do
+            expect(second_rook).to receive(:current_square=).with(square_moved_over)
+
+            player.move!(to_square, king, board.chessboard)
+          end
+
+          it 'move Rook from h8 to f8 on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(square_moved_over => empty_square))
+              .to(include(square_moved_over => second_rook))
+          end
+
+          it 'change h8 key to empty value on chessboard' do
+            expect { player.move!(to_square, king, board.chessboard) }
+              .to change { board.chessboard }
+              .from(include(second_rook_at_square => second_rook))
+              .to(include(second_rook_at_square => empty_square))
+          end
         end
       end
     end

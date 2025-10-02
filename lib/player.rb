@@ -99,7 +99,7 @@ class Player
   end
 
   def castling_move_rook(king, king_to_square, board)
-    rook = find_rook_to_castle(king, king_to_square, board)
+    rook = find_rook_to_castle(king, king_to_square)
 
     direction = case king_to_square
                 when 'g8', 'g1' then method(:rightward)
@@ -133,10 +133,8 @@ class Player
     false
   end
 
-  def find_rook_to_castle(king, king_to_square, board)
-    rooks = find_own_rooks
-
-    return rooks[0] if rooks.size == 1
+  def find_rook_to_castle(king, king_to_square)
+    rooks = pieces.select { |piece| piece.is_a?(Rook) }
 
     [method(:leftward), method(:rightward)].each do |direction|
       direction.call(king_to_square) do |next_square|
@@ -144,13 +142,9 @@ class Player
 
         rook_to_castle = rooks.select { |rook| rook.current_square == next_square }
 
-        return rook_to_castle[0] if rook_to_castle
+        return rook_to_castle[0] if rook_to_castle.any?
       end
     end
-  end
-
-  def find_own_rooks
-    pieces.select { |piece| piece.is_a?(Rook) }
   end
 
   def empty_square?(square, board)
