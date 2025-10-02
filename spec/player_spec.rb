@@ -172,6 +172,7 @@ describe Player do
 
       before do
         player.instance_variable_set(:@board, board)
+        player.instance_variable_set(:@pieces, [king, rook])
 
         allow(king).to receive(:is_a?).with(Pawn).and_return(false)
         allow(king).to receive(:is_a?).with(Rook).and_return(false)

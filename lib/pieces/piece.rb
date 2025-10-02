@@ -9,6 +9,8 @@ class Piece
   attr_accessor :current_square
 
   def initialize(color, square, player = nil)
+    player.pieces << self unless player.nil?
+
     @color = color
     @current_square = square
     @moves = nil

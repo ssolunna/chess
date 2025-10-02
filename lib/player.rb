@@ -14,7 +14,7 @@ class Player
 
   EMPTY_SQUARE = ' '
 
-  attr_reader :color, :board, :pieces_moved_log
+  attr_reader :color, :board, :pieces, :pieces_moved_log
 
   def initialize(color, board)
     @color = color
@@ -52,7 +52,7 @@ class Player
   def promoteable?(pawn)
     return unless pawn.is_a?(Pawn)
 
-    last_row_pattern = { 'white' => /^[a-h][8]$/, 'black' => /^[a-h][1]$/ }
+    last_row_pattern = { 'white' => /^[a-h]8$/, 'black' => /^[a-h]1$/ }
 
     pawn.current_square.match?(last_row_pattern[pawn.color])
   end
@@ -68,16 +68,12 @@ class Player
   end
 
   def take_en_passant(pawn, to_square, board)
-    if pawn.color == 'white'
-      downward(to_square) do |square_down|
-        board[square_down] = EMPTY_SQUARE
-        break
-      end
-    else
-      upward(to_square) do |square_up|
-        board[square_up] = EMPTY_SQUARE
-        break
-      end
+    direction = { 'white' => method(:downward), 'black' => method(:upward) }
+
+    direction[pawn.color].call(to_square) do |square_taken|
+      board[square_taken] = EMPTY_SQUARE
+
+      break
     end
   end
 
@@ -87,14 +83,12 @@ class Player
     empty_square?(to_square, board) && diagonal_move?(pawn, to_square)
   end
 
-  def diagonal_move?(piece, to_square)
-    directions = [method(:up_leftward),
-                  method(:up_rightward),
-                  method(:down_leftward),
-                  method(:down_rightward)]
+  def diagonal_move?(pawn, to_square)
+    directions = { 'white' => [method(:up_leftward), method(:up_rightward)],
+                   'black' => [method(:down_leftward), method(:down_rightward)] }
 
-    directions.each do |direction|
-      direction.call(piece.current_square) do |next_square|
+    directions[pawn.color].each do |direction|
+      direction.call(pawn.current_square) do |next_square|
         return true if next_square == to_square
 
         break
@@ -108,8 +102,8 @@ class Player
     rook = find_rook_to_castle(king, king_to_square, board)
 
     direction = case king_to_square
-                in 'g8' | 'g1' then method(:rightward)
-                in 'c8' | 'c1' then method(:leftward)
+                when 'g8', 'g1' then method(:rightward)
+                when 'c8', 'c1' then method(:leftward)
                 end
 
     direction.call(king.current_square) do |next_square|
@@ -140,7 +134,7 @@ class Player
   end
 
   def find_rook_to_castle(king, king_to_square, board)
-    rooks = find_rooks(king, board)
+    rooks = find_own_rooks
 
     return rooks[0] if rooks.size == 1
 
@@ -155,11 +149,8 @@ class Player
     end
   end
 
-  def find_rooks(king, board)
-    board.select do |_square, piece|
-      piece.is_a?(Rook) &&
-        piece.color == king.color
-    end.values
+  def find_own_rooks
+    pieces.select { |piece| piece.is_a?(Rook) }
   end
 
   def empty_square?(square, board)
