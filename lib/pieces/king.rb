@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'piece'
-require_relative 'rook'
 require_relative '../movements/king_movement'
 
 # Chess piece: The King
@@ -21,9 +20,11 @@ class King < Piece
   def castling_moves(board)
     return unless moves_log.size == 1 # King has not made a move yet
 
-    rooks = find_rooks(board).select { |rook| rook.moves_log.size == 1 } # No Rook has made a move yet
+    rooks = player.pieces.select do |piece|
+      piece.class.name == 'Rook' && piece.moves_log.size == 1
+    end
 
-    return unless rooks
+    return unless rooks.any? # A Rook has not made a move yet
 
     possible_squares = []
 
@@ -73,12 +74,5 @@ class King < Piece
         piece.attacking_square?(square_moved_over, board) ||
         piece.attacking_square?(two_squares_towards_rook, board)
     end
-  end
-
-  def find_rooks(board)
-    board.select do |_square, piece|
-      piece.is_a?(Rook) &&
-        piece.color == color
-    end.values
   end
 end

@@ -6,449 +6,641 @@ require_relative '../../lib/player'
 
 RSpec.shared_examples 'a king' do
   describe '#search_legal_moves' do
-    context 'when king is at e1' do
-      context 'if d2 empty, same-color at d1, e2, f1 and opponent at f2' do
-        it 'returns array of squares: d2, f2' do
-          current_square = 'e1'
-          board = { 'd2' => ' ',
-                    'e2' => double(color: color),
-                    'f2' => double(color: opponent_color),
-                    'd1' => double(color: color),
-                    'f1' => double(color: color) }
-          expected_array = %w[d2 f2]
+    let(:player) { Player.new(color, {}) }
+    let(:king) { described_class.new(color, current_square, player) }
 
-          king = described_class.new(color, current_square)
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          legal_moves = king.search_legal_moves(board)
-
-          expect(legal_moves).to match_array(expected_array)
-        end
-      end
-    end
-
-    context 'when king is at e8' do
-      context 'if d7, f7 empty, same-color piece at e7 and opponent at d8, f8' do
-        it 'returns array of squares: d7, f7, d8, f8' do
-          current_square = 'e8'
-          board = { 'e7' => double(color: color),
-                    'd7' => ' ',
-                    'f7' => ' ',
-                    'd8' => double(color: opponent_color),
-                    'f8' => double(color: opponent_color) }
-          expected_array = %w[d7 f7 d8 f8]
-
-          king = described_class.new(color, current_square)
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          legal_moves = king.search_legal_moves(board)
-
-          expect(legal_moves).to match_array(expected_array)
-        end
-      end
-    end
-
-    context 'when king is at a8' do
-      context 'if b8 empty, same-color at b7 and opponent at a7' do
-        it 'returns array of squares: b8, a7' do
-          current_square = 'a8'
-          board = { 'b7' => double(color: color),
-                    'b8' => ' ',
-                    'a7' => double(color: opponent_color) }
-          expected_array = %w[b8 a7]
-
-          king = described_class.new(color, current_square)
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          legal_moves = king.search_legal_moves(board)
-
-          expect(legal_moves).to match_array(expected_array)
-        end
-      end
-    end
-
-    context 'when king is at h1' do
-      context 'if same-color pieces at g1, g2, h2' do
-        it 'returns an empty array' do
-          current_square = 'h1'
-          board = { 'g1' => double(color: color),
-                    'g2' => double(color: color),
-                    'h2' => double(color: color) }
-
-          king = described_class.new(color, current_square)
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          legal_moves = king.search_legal_moves(board)
-
-          expect(legal_moves).to be_empty
-        end
-      end
-    end
-
-    context 'when king is at e5' do
-      context 'if e6, f5, f4, d6 empty, same-color at d5, f6
-          and opponent at e4, d4' do
-        it 'returns array of squares: e6, f5, f4, d6, e4, d4' do
-          current_square = 'e5'
-          board = { 'd6' => ' ',
-                    'e6' => ' ',
-                    'f6' => double(color: color),
-                    'f5' => ' ',
-                    'f4' => ' ',
-                    'e4' => double(color: opponent_color),
-                    'd4' => double(color: opponent_color),
-                    'd5' => double(color: color) }
-          expected_array = %w[e6 f5 f4 d6 e4 d4]
-
-          king = described_class.new(color, current_square)
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          legal_moves = king.search_legal_moves(board)
-
-          expect(legal_moves).to match_array(expected_array)
-        end
-      end
-    end
-
-    context 'when king is at e1 and rook at a1' do
-      let(:current_square) { 'e1' }
-      let(:king) { described_class.new(color, current_square) }
-      let(:rook) do
-        double('Rook', color: color,
-                       current_square: 'a1',
-                       is_a?: true)
-      end
-
-      let(:board) do
-        { 'e1' => king,
-          'a1' => rook,
-          'b1' => ' ',
-          'b2' => ' ',
-          'b3' => ' ',
-          'c1' => ' ',
-          'c2' => ' ',
-          'd1' => ' ',
-          'd2' => ' ',
-          'e2' => ' ',
-          'e3' => ' ',
-          'e4' => ' ',
-          'f2' => double(color: color),
-          'f1' => double(color: color) }
-      end
-
+    context 'without castling moves available' do
       before do
         king.instance_variable_set(:@moves, king.moves_from(current_square))
-        allow(rook).to receive(:moves_log).and_return(['a1'])
       end
 
-      context 'when all castling conditions are met' do
-        it 'should include c1' do
-          expect(king.search_legal_moves(board)).to include('c1')
+      context 'when king is at e1 (but no rooks)' do
+        let(:current_square) { 'e1' }
+
+        context 'if d2 empty, same-color at d1, e2, f1 and opponent at f2' do
+          it 'returns array of squares: d2, f2' do
+            board = { 'd2' => ' ',
+                      'e2' => double(color: color),
+                      'f2' => double(color: opponent_color),
+                      'd1' => double(color: color),
+                      'f1' => double(color: color) }
+            expected_array = %w[d2 f2]
+
+            legal_moves = king.search_legal_moves(board)
+
+            expect(legal_moves).to match_array(expected_array)
+          end
         end
       end
 
-      context 'when any castling condition is not met' do
-        context 'if king has already moved' do
-          it 'should not include c1' do
-            king.instance_variable_set(:@moves_log, [current_square, 'e2', current_square])
+      context 'when king is at e8 (but no rooks)' do
+        let(:current_square) { 'e8' }
 
-            expect(king.search_legal_moves(board)).not_to include('c1')
+        context 'if d7, f7 empty, same-color piece at e7 and opponent at d8, f8' do
+          it 'returns array of squares: d7, f7, d8, f8' do
+            board = { 'e7' => double(color: color),
+                      'd7' => ' ',
+                      'f7' => ' ',
+                      'd8' => double(color: opponent_color),
+                      'f8' => double(color: opponent_color) }
+            expected_array = %w[d7 f7 d8 f8]
+
+            legal_moves = king.search_legal_moves(board)
+
+            expect(legal_moves).to match_array(expected_array)
+          end
+        end
+      end
+
+      context 'when king is at a8' do
+        let(:current_square) { 'a8' }
+
+        context 'if b8 empty, same-color at b7 and opponent at a7' do
+          it 'returns array of squares: b8, a7' do
+            board = { 'b7' => double(color: color),
+                      'b8' => ' ',
+                      'a7' => double(color: opponent_color) }
+
+            expected_array = %w[b8 a7]
+
+            legal_moves = king.search_legal_moves(board)
+
+            expect(legal_moves).to match_array(expected_array)
+          end
+        end
+      end
+
+      context 'when king is at h1' do
+        let(:current_square) { 'h1' }
+
+        context 'if same-color pieces at g1, g2, h2' do
+          it 'returns an empty array' do
+            board = { 'g1' => double(color: color),
+                      'g2' => double(color: color),
+                      'h2' => double(color: color) }
+
+            legal_moves = king.search_legal_moves(board)
+
+            expect(legal_moves).to be_empty
+          end
+        end
+      end
+
+      context 'when king is at e5' do
+        let(:current_square) { 'e5' }
+
+        context 'if e6, f5, f4, d6 empty, same-color at d5, f6
+            and opponent at e4, d4' do
+          it 'returns array of squares: e6, f5, f4, d6, e4, d4' do
+            board = { 'd6' => ' ',
+                      'e6' => ' ',
+                      'f6' => double(color: color),
+                      'f5' => ' ',
+                      'f4' => ' ',
+                      'e4' => double(color: opponent_color),
+                      'd4' => double(color: opponent_color),
+                      'd5' => double(color: color) }
+
+            expected_array = %w[e6 f5 f4 d6 e4 d4]
+
+            legal_moves = king.search_legal_moves(board)
+
+            expect(legal_moves).to match_array(expected_array)
+          end
+        end
+      end
+    end
+
+    context 'with castling moves available' do
+      context 'when white king at e1, white rooks at a1 and h1
+          and same color pieces at d2, e2, f2' do
+        let(:current_square) { 'e1' }
+        let(:rook_at_square) { 'a1' }
+        let(:second_rook_at_square) { 'h1' }
+
+        let(:opponent) { described_class.new(opponent_color, '') }
+        let(:rook) do
+          double('Rook', color: color,
+                         current_square: rook_at_square,
+                         player: player,
+                         moves_log: [rook_at_square])
+        end
+
+        let(:second_rook) do
+          double('2Rook', color: color,
+                          current_square: second_rook_at_square,
+                          player: player,
+                          moves_log: [second_rook_at_square])
+        end
+
+        let(:board) do
+          { rook_at_square => rook,
+            'b1' => ' ',
+            'c1' => ' ',
+            'd1' => ' ',
+            current_square => king,
+            'f1' => ' ',
+            'g1' => ' ',
+            second_rook_at_square => second_rook,
+            'd2' => double(color: color),
+            'e2' => double(color: color),
+            'f2' => double(color: color) }
+        end
+
+        before do
+          king.instance_variable_set(:@moves, king.moves_from(current_square))
+          player.instance_variable_set(:@pieces, [king, rook, second_rook])
+          allow(rook).to receive(:class) { Rook }
+          allow(second_rook).to receive(:class) { Rook }
+        end
+
+        context 'if castling conditions are met for both rooks' do
+          it 'returns an array of squares d1, f1, c1, g1' do
+            expected_array = %w[d1 f1 c1 g1]
+            expect(king.search_legal_moves(board)).to match_array(expected_array)
           end
         end
 
-        context 'if rook has already moved' do
-          it 'should not include c1' do
-            allow(rook).to receive(:moves_log).and_return(%w[a1 a2 a1])
+        context 'when a castling condition is not met' do
+          context 'if king has previously made a move' do
+            it 'returns an array not including c1, g1' do
+              king.instance_variable_set(:@moves_log, [current_square, 'e2', current_square])
 
-            expect(king.search_legal_moves(board)).not_to include('c1')
+              expect(king.search_legal_moves(board)).not_to include('c1', 'g1')
+            end
           end
-        end
 
-        context 'if king is in check' do
-          it 'should not include c1' do
-            opponent = Queen.new(opponent_color, 'e5')
-            board['e5'] = opponent
+          context 'if rook at a1 has previously made a move' do
+            it 'returns an array of squares d1, f1, g1' do
+              allow(rook).to receive(:moves_log)
+                .and_return([rook_at_square, 'a2', rook_at_square])
 
-            expect(king.search_legal_moves(board)).not_to include('c1')
+              expected_array = %w[d1 f1 g1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
           end
-        end
 
-        context 'if an opponent is attacking square d1' do
-          it 'should not include c1' do
-            opponent = Queen.new(opponent_color, 'a4')
-            board['a4'] = opponent
+          context 'if rook at h1 has previously made a move' do
+            it 'returns an array of squares d1, f1, c1' do
+              allow(second_rook).to receive(:moves_log)
+                .and_return([second_rook_at_square, 'h2', second_rook_at_square])
 
-            expect(king.search_legal_moves(board)).not_to include('c1')
+              expected_array = %w[d1 f1 c1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
           end
-        end
 
-        context 'if an opponent is attacking square c1' do
-          it 'should not include c1' do
-            opponent = Queen.new(opponent_color, 'a3')
-            board['a3'] = opponent
+          context 'if king is in check' do
+            it 'returns an array of squares d1, f1' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return([current_square])
 
-            expect(king.search_legal_moves(board)).not_to include('c1')
+              board['c2'] = opponent
+
+              expected_array = %w[d1 f1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
           end
-        end
 
-        %w[b1 c1 d1].each do |square|
-          context "if there is a piece at #{square}" do
-            it 'should not include c1' do
-              opponent = double(color: opponent_color, current_square: square)
-              board[square] = opponent
+          context 'if an opponent is attacking square d1' do
+            it 'returns an array of squares d1, f1, g1' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['d1'])
 
-              expect(king.search_legal_moves(board)).not_to include('c1')
+              board['e3'] = opponent
+
+              expected_array = %w[d1 f1 g1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if an opponent is attacking square f1' do
+            it 'returns an array of squares d1, c1, f1' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['f1'])
+
+              board['g3'] = opponent
+
+              expected_array = %w[d1 c1 f1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if an opponent is attacking square c1' do
+            it 'returns an array of squares d1, f1, g1' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['c1'])
+
+              board['d3'] = opponent
+
+              expected_array = %w[d1 f1 g1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if an opponent is attacking square g1' do
+            it 'returns an array of squares d1, c1, f1' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['g1'])
+
+              board['f3'] = opponent
+
+              expected_array = %w[d1 c1 f1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          %w[b1 c1 d1].each do |square|
+            context "if there is a piece at #{square}" do
+              it 'returns an array including g1 but not c1' do
+                piece = double(color: opponent_color,
+                               current_square: square,
+                               gives_check?: false,
+                               attacking_square?: false)
+
+                board[square] = piece
+
+                expect(king.search_legal_moves(board)).to include('g1')
+                expect(king.search_legal_moves(board)).not_to include('c1')
+              end
+            end
+          end
+
+          %w[f1 g1].each do |square|
+            context "if there is a piece at #{square}" do
+              it 'returns an array including c1 but not g1' do
+                piece = double(color: opponent_color,
+                               current_square: square,
+                               gives_check?: false,
+                               attacking_square?: false)
+
+                board[square] = piece
+
+                expect(king.search_legal_moves(board)).to include('c1')
+                expect(king.search_legal_moves(board)).not_to include('g1')
+              end
+            end
+          end
+
+          context 'if there are pieces at d1 and f1' do
+            it 'returns an array not including c1, g1' do
+              piece = double(color: opponent_color,
+                             current_square: 'd1',
+                             gives_check?: false,
+                             attacking_square?: false)
+
+              second_piece = double(color: opponent_color,
+                                    current_square: 'f1',
+                                    gives_check?: false,
+                                    attacking_square?: false)
+
+              board['d1'] = piece
+              board['f1'] = second_piece
+
+              expect(king.search_legal_moves(board)).not_to include('c1', 'g1')
+            end
+          end
+
+          context 'if king moves, but rooks do not' do
+            it 'returns an array not including c1, g1' do
+              king.instance_variable_set(:@moves_log, [current_square, 'e2'])
+
+              board['e2'] = king
+              board[current_square] = ' '
+
+              expect(king.search_legal_moves(board)).not_to include('c1', 'g1')
+            end
+          end
+
+          context 'if rook at a1 moves, but king do not' do
+            it 'returns an array of squares d1 f1 g1' do
+              allow(rook).to receive(:moves_log).and_return([rook_at_square, 'a2'])
+
+              board['a2'] = rook
+              board[rook_at_square] = ' '
+
+              expected_array = %w[d1 f1 g1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if rook at h1 moves, but king do not' do
+            it 'returns an array of squares d1 f1 c1' do
+              allow(second_rook).to receive(:moves_log).and_return([second_rook_at_square, 'h2'])
+
+              board['h2'] = second_rook
+              board[second_rook_at_square] = ' '
+
+              expected_array = %w[d1 f1 c1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if there is no rook at a1' do
+            it 'returns an array of squares d1 f1 g1' do
+              allow(player).to receive(:pieces) { [king, second_rook] }
+
+              board[rook_at_square] = ' '
+
+              expected_array = %w[d1 f1 g1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if there is no rook at h1' do
+            it 'returns an array of squares d1 f1 c1' do
+              allow(player).to receive(:pieces) { [king, rook] }
+
+              board[second_rook_at_square] = ' '
+
+              expected_array = %w[d1 f1 c1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if there is no rook' do
+            it 'returns an array of squares d1 f1' do
+              allow(player).to receive(:pieces) { [king] }
+
+              board[rook_at_square] = ' '
+              board[second_rook_at_square] = ' '
+
+              expected_array = %w[d1 f1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
         end
-
-        context 'if king moves to e2' do
-          it 'should not include c1' do
-            king.instance_variable_set(:@moves_log, [current_square, 'e2'])
-            board['e2'] = king
-            board['e1'] = ' '
-
-            expect(king.search_legal_moves(board)).not_to include('c1')
-          end
-        end
-
-        context 'if rook moves to a2' do
-          it 'should not include c1' do
-            allow(rook).to receive(:moves_log).and_return(%w[a1 a2])
-            board['a2'] = rook
-            board['a1'] = ' '
-
-            expect(king.search_legal_moves(board)).not_to include('c1')
-          end
-        end
-      end
-    end
-
-    context 'when king is at e8 and rook at h8' do
-      let(:current_square) { 'e8' }
-      let(:king) { described_class.new(color, current_square) }
-      let(:rook) do
-        double('Rook', color: color,
-                       current_square: 'h8',
-                       is_a?: true)
       end
 
-      let(:board) do
-        { 'e8' => king,
-          'h8' => rook,
-          'f8' => ' ',
-          'g8' => ' ',
-          'e7' => ' ',
-          'e6' => ' ',
-          'f6' => ' ',
-          'g7' => ' ',
-          'd8' => double(color: color),
-          'd7' => double(color: color) }
-      end
+      context 'when king at e8, white rooks at a8 and h8
+          and same color pieces at d7, e7, f7' do
+        let(:current_square) { 'e8' }
+        let(:rook_at_square) { 'a8' }
+        let(:second_rook_at_square) { 'h8' }
 
-      before do
-        king.instance_variable_set(:@moves, king.moves_from(current_square))
-        allow(rook).to receive(:moves_log).and_return(['h8'])
-      end
+        let(:opponent) { described_class.new(opponent_color, '') }
 
-      context 'when all castling conditions are met' do
-        it 'should include g8' do
-          expect(king.search_legal_moves(board)).to include('g8')
+        let(:rook) do
+          double('Rook', color: color,
+                         current_square: rook_at_square,
+                         player: player,
+                         moves_log: [rook_at_square])
         end
-      end
 
-      context 'when any castling condition is not met' do
-        context 'if king has already moved' do
-          it 'should not include g8' do
-            king.instance_variable_set(:@moves_log, [current_square, 'e7', current_square])
+        let(:second_rook) do
+          double('2Rook', color: color,
+                          current_square: second_rook_at_square,
+                          player: player,
+                          moves_log: [second_rook_at_square])
+        end
 
-            expect(king.search_legal_moves(board)).not_to include('g8')
+        let(:board) do
+          { rook_at_square => rook,
+            'b8' => ' ',
+            'c8' => ' ',
+            'd8' => ' ',
+            current_square => king,
+            'f8' => ' ',
+            'g8' => ' ',
+            second_rook_at_square => second_rook,
+            'd7' => double(color: color),
+            'e7' => double(color: color),
+            'f7' => double(color: color) }
+        end
+
+        before do
+          king.instance_variable_set(:@moves, king.moves_from(current_square))
+          player.instance_variable_set(:@pieces, [king, rook, second_rook])
+          allow(rook).to receive(:class) { Rook }
+          allow(second_rook).to receive(:class) { Rook }
+        end
+
+        context 'if castling conditions are met for both rooks' do
+          it 'returns an array of squares d8, f8, c8, g8' do
+            expected_array = %w[d8 f8 c8 g8]
+            expect(king.search_legal_moves(board)).to match_array(expected_array)
           end
         end
 
-        context 'if rook has already moved' do
-          it 'should not include g8' do
-            allow(rook).to receive(:moves_log).and_return(%w[h8 h7 h8])
+        context 'when a castling condition is not met' do
+          context 'if king has previously made a move' do
+            it 'returns an array not including c8, g8' do
+              king.instance_variable_set(:@moves_log, [current_square, 'e7', current_square])
 
-            expect(king.search_legal_moves(board)).not_to include('g8')
-          end
-        end
-
-        context 'if king is in check' do
-          it 'should not include g8' do
-            opponent = Queen.new(opponent_color, 'e5')
-            board['e5'] = opponent
-
-            expect(king.search_legal_moves(board)).not_to include('g8')
-          end
-        end
-
-        context 'if an opponent is attacking square f8' do
-          it 'should not include g8' do
-            opponent = Queen.new(opponent_color, 'h6')
-            board['h6'] = opponent
-
-            expect(king.search_legal_moves(board)).not_to include('g8')
-          end
-        end
-
-        context 'if an opponent is attacking square g8' do
-          it 'should not include g8' do
-            opponent = Queen.new(opponent_color, 'h7')
-            board['h7'] = opponent
-
-            expect(king.search_legal_moves(board)).not_to include('g8')
-          end
-        end
-
-        %w[f8 g8].each do |square|
-          context "if there is a piece at #{square}" do
-            it 'should not include g8' do
-              opponent = double(color: opponent_color, current_square: square)
-              board[square] = opponent
-
-              expect(king.search_legal_moves(board)).not_to include('g8')
+              expect(king.search_legal_moves(board)).not_to include('c8', 'g8')
             end
           end
-        end
 
-        context 'if king moves to e7' do
-          it 'should not include g8' do
-            king.instance_variable_set(:@moves_log, [current_square, 'e7'])
-            board['e7'] = king
-            board['e8'] = ' '
+          context 'if rook at a8 has previously made a move' do
+            it 'returns an array of squares d8, f8, g8' do
+              allow(rook).to receive(:moves_log)
+                .and_return([rook_at_square, 'a7', rook_at_square])
 
-            expect(king.search_legal_moves(board)).not_to include('g8')
+              expected_array = %w[d8 f8 g8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
           end
-        end
 
-        context 'if rook moves to h7' do
-          it 'should not include g8' do
-            allow(rook).to receive(:moves_log).and_return(%w[h8 h7])
-            board['h7'] = rook
-            board['h8'] = ' '
+          context 'if rook at h8 has previously made a move' do
+            it 'returns an array of squares d8, f8, c8' do
+              allow(second_rook).to receive(:moves_log)
+                .and_return([second_rook_at_square, 'h7', second_rook_at_square])
 
-            expect(king.search_legal_moves(board)).not_to include('g8')
+              expected_array = %w[d8 f8 c8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
           end
-        end
-      end
-    end
 
-    context 'when king is at e1 and rooks are at a1 and h1' do
-      let(:current_square) { 'e1' }
-      let(:king) { described_class.new(color, current_square) }
+          context 'if king is in check' do
+            it 'returns an array of squares d8, f8' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return([current_square])
 
-      let(:first_rook) do
-        double('Rook', color: color,
-                       current_square: 'a1',
-                       is_a?: true)
-      end
+              board['c7'] = opponent
 
-      let(:second_rook) do
-        double('Rook', color: color,
-                       current_square: 'h1',
-                       is_a?: true)
-      end
+              expected_array = %w[d8 f8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
 
-      let(:board) do
-        { 'e1' => king,
-          'a1' => first_rook,
-          'b1' => ' ',
-          'c1' => ' ',
-          'd1' => ' ',
-          'd2' => ' ',
-          'e2' => ' ',
-          'f2' => double(color: color),
-          'f1' => ' ',
-          'g1' => ' ',
-          'h1' => second_rook }
-      end
+          context 'if an opponent is attacking square d8' do
+            it 'returns an array of squares d8, f8, g8' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['d8'])
 
-      context 'when all castling conditions are met' do
-        it 'should include c1 and g1' do
-          allow(first_rook).to receive(:moves_log).and_return(['a1'])
-          allow(second_rook).to receive(:moves_log).and_return(['h1'])
+              board['e6'] = opponent
 
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
+              expected_array = %w[d8 f8 g8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
 
-          expect(king.search_legal_moves(board)).to include('c1', 'g1')
-        end
-      end
-    end
+          context 'if an opponent is attacking square f8' do
+            it 'returns an array of squares d8, c8, f8' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['f8'])
 
-    context 'when king is at e8 and rooks are at a8 and h8' do
-      let(:current_square) { 'e8' }
-      let(:king) { described_class.new(color, current_square) }
+              board['g6'] = opponent
 
-      let(:first_rook) do
-        double('Rook', color: color,
-                       current_square: 'a8',
-                       is_a?: true)
-      end
+              expected_array = %w[d8 c8 f8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
 
-      let(:second_rook) do
-        double('Rook', color: color,
-                       current_square: 'h8',
-                       is_a?: true)
-      end
+          context 'if an opponent is attacking square c8' do
+            it 'returns an array of squares d8, f8, g8' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['c8'])
 
-      let(:board) do
-        { 'e8' => king,
-          'a8' => first_rook,
-          'b8' => ' ',
-          'c8' => ' ',
-          'd8' => ' ',
-          'd7' => ' ',
-          'e7' => ' ',
-          'f7' => double(color: color),
-          'f8' => ' ',
-          'g8' => ' ',
-          'h8' => second_rook }
-      end
+              board['d6'] = opponent
 
-      context 'when all castling conditions are met' do
-        it 'should include c8 and g8' do
-          allow(first_rook).to receive(:moves_log).and_return(['a8'])
-          allow(second_rook).to receive(:moves_log).and_return(['h8'])
+              expected_array = %w[d8 f8 g8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
 
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
+          context 'if an opponent is attacking square g8' do
+            it 'returns an array of squares d8, c8, f8' do
+              allow(opponent).to receive(:search_legal_moves)
+                .and_return(['g8'])
 
-          expect(king.search_legal_moves(board)).to include('c8', 'g8')
-        end
-      end
-    end
+              board['f6'] = opponent
 
-    context 'when king is at e8 but there are no rooks' do
-      let(:current_square) { 'e8' }
-      let(:king) { described_class.new(color, current_square) }
+              expected_array = %w[d8 c8 f8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
 
-      let(:board) do
-        { 'e8' => king,
-          'a8' => ' ',
-          'b8' => ' ',
-          'c8' => ' ',
-          'd8' => ' ',
-          'd7' => ' ',
-          'e7' => ' ',
-          'f7' => double(color: color),
-          'f8' => ' ',
-          'g8' => ' ',
-          'h8' => ' ' }
-      end
+          %w[b8 c8 d8].each do |square|
+            context "if there is a piece at #{square}" do
+              it 'returns an array including g8 but not c8' do
+                piece = double(color: opponent_color,
+                               current_square: square,
+                               gives_check?: false,
+                               attacking_square?: false)
 
-      context 'when all castling conditions are met' do
-        it 'should not include c8 or g8' do
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
+                board[square] = piece
 
-          expect(king.search_legal_moves(board)).not_to include('c8', 'g8')
+                expect(king.search_legal_moves(board)).to include('g8')
+                expect(king.search_legal_moves(board)).not_to include('c8')
+              end
+            end
+          end
+
+          %w[f8 g8].each do |square|
+            context "if there is a piece at #{square}" do
+              it 'returns an array including c8 but not g8' do
+                piece = double(color: opponent_color,
+                               current_square: square,
+                               gives_check?: false,
+                               attacking_square?: false)
+
+                board[square] = piece
+
+                expect(king.search_legal_moves(board)).to include('c8')
+                expect(king.search_legal_moves(board)).not_to include('g8')
+              end
+            end
+          end
+
+          context 'if there are pieces at d8 and f8' do
+            it 'returns an array not including c8, g8' do
+              piece = double(color: opponent_color,
+                             current_square: 'd8',
+                             gives_check?: false,
+                             attacking_square?: false)
+
+              second_piece = double(color: opponent_color,
+                                    current_square: 'f8',
+                                    gives_check?: false,
+                                    attacking_square?: false)
+
+              board['d8'] = piece
+              board['f8'] = second_piece
+
+              expect(king.search_legal_moves(board)).not_to include('c8', 'g8')
+            end
+          end
+
+          context 'if king moves, but rooks do not' do
+            it 'returns an array not including c8, g8' do
+              king.instance_variable_set(:@moves_log, [current_square, 'e7'])
+
+              board['e7'] = king
+              board[current_square] = ' '
+
+              expect(king.search_legal_moves(board)).not_to include('c8', 'g8')
+            end
+          end
+
+          context 'if rook at a8 moves, but king do not' do
+            it 'returns an array of squares d8 f8 g8' do
+              allow(rook).to receive(:moves_log).and_return([rook_at_square, 'a7'])
+
+              board['a7'] = rook
+              board[rook_at_square] = ' '
+
+              expected_array = %w[d8 f8 g8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if rook at h8 moves, but king do not' do
+            it 'returns an array of squares d8 f8 c8' do
+              allow(second_rook).to receive(:moves_log).and_return([second_rook_at_square, 'h7'])
+
+              board['h7'] = second_rook
+              board[second_rook_at_square] = ' '
+
+              expected_array = %w[d8 f8 c8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if there is no rook at a8' do
+            it 'returns an array of squares d8 f8 g8' do
+              allow(player).to receive(:pieces) { [king, second_rook] }
+
+              board[rook_at_square] = ' '
+
+              expected_array = %w[d8 f8 g8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if there is no rook at h8' do
+            it 'returns an array of squares d8 f8 c8' do
+              allow(player).to receive(:pieces) { [king, rook] }
+
+              board[second_rook_at_square] = ' '
+
+              expected_array = %w[d8 f8 c8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if there is no rook' do
+            it 'returns an array of squares d8 f8' do
+              allow(player).to receive(:pieces) { [king] }
+
+              board[rook_at_square] = ' '
+              board[second_rook_at_square] = ' '
+
+              expected_array = %w[d8 f8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
         end
       end
     end
   end
 
   describe '#screen_legal_moves' do
-    let!(:player) { Player.new('color', {}) }
+    let(:player) { Player.new(color, {}) }
+    let(:king) { described_class.new(color, current_square, player) }
 
     context 'when king is at f4' do
       let(:current_square) { 'f4' }
-      let(:king) { described_class.new(color, current_square) }
-
-      before { king.instance_variable_set(:@player, player) }
 
       context 'when legal moves are [e5, f5, g5, g4, g3, f3, e3, e4]' do
         let(:legal_moves) { %w[e5 f5 g5 g4 g3 f3 e3 e4] }
