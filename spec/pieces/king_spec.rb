@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/pieces/king'
-require_relative '../../lib/pieces/queen'
 require_relative '../../lib/player'
 
 RSpec.shared_examples 'a king' do
@@ -638,6 +637,8 @@ RSpec.shared_examples 'a king' do
   describe '#screen_legal_moves' do
     let(:player) { Player.new(color, {}) }
     let(:king) { described_class.new(color, current_square, player) }
+    let(:opponent) { described_class.new(opponent_color, opponent_square, player) }
+    let(:opponent_two) { described_class.new(opponent_color, second_opponent_square, player) }
 
     context 'when king is at f4' do
       let(:current_square) { 'f4' }
@@ -645,13 +646,15 @@ RSpec.shared_examples 'a king' do
       context 'when legal moves are [e5, f5, g5, g4, g3, f3, e3, e4]' do
         let(:legal_moves) { %w[e5 f5 g5 g4 g3 f3 e3 e4] }
 
-        context 'if king is in check at f4 by opponent queen at d6' do
+        context 'if king in check by opponent at d6
+            attacking squares: e5 f4 g3' do
+          let(:opponent_square) { 'd6' }
+
           it 'returns array of squares: f5, g5, g4, f3, e3, e4' do
-            opponent = Queen.new(opponent_color, 'd6')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('d6'))
+            allow(opponent).to receive(:search_legal_moves) { %w[e5 f4 g3] }
 
             board = { 'd6' => opponent,
-                      'f4' => king,
+                      current_square => king,
                       'e5' => ' ',
                       'f5' => ' ',
                       'g5' => ' ',
@@ -669,10 +672,12 @@ RSpec.shared_examples 'a king' do
           end
         end
 
-        context 'if king is in check at f4 by opponent queen at f5' do
+        context 'if king at check by opponent at f5
+            attacking squares: f4 f3 g4 g5 e5 e4' do
+          let(:opponent_square) { 'f5' }
+
           it 'returns array of squares: f5 e3 g3' do
-            opponent = Queen.new(opponent_color, 'f5')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('f5'))
+            allow(opponent).to receive(:search_legal_moves) { %w[f4 f3 g4 g5 e5 e4] }
 
             board = { 'f4' => king,
                       'e5' => ' ',
@@ -692,13 +697,15 @@ RSpec.shared_examples 'a king' do
           end
         end
 
-        context 'if king is not in check at f4 by opponent queens at d5 and g6' do
-          it 'returns array of squares: e3' do
-            opponent = Queen.new(opponent_color, 'd5')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('d5'))
+        context 'if king is not in check by opponents:
+            at d5 attacking squares e5 f5 g5 e4 f3, and
+            at g6 attacking squares g5 g4 g3 f5 e4' do
+          let(:opponent_square) { 'd5' }
+          let(:second_opponent_square) { 'g6' }
 
-            opponent_two = Queen.new(opponent_color, 'g6')
-            opponent_two.instance_variable_set(:@moves, opponent_two.moves_from('g6'))
+          it 'returns array of squares: e3' do
+            allow(opponent).to receive(:search_legal_moves) { %w[e5 f5 g5 e4 f3] }
+            allow(opponent_two).to receive(:search_legal_moves) { %w[g5 g4 g3 f5 e4] }
 
             board = { 'd5' => opponent,
                       'g6' => opponent_two,
@@ -719,15 +726,13 @@ RSpec.shared_examples 'a king' do
             expect(selected_legal_moves).to match_array(expected_array)
           end
         end
-      end
 
-      context 'when legal moves are [e5, g5, g4, g3, f3, e3, e4]' do
-        let(:legal_moves) { %w[e5 g5 g4 g3 f3 e3 e4] }
+        context 'if king is in check by opponent at g5
+            attacking squares f5 f4 e3 g4 g3' do
+          let(:opponent_square) { 'g5' }
 
-        context 'if king is in check at f4 by opponent queen at g5' do
           it 'returns array of squares: e5, g5, f3, e4' do
-            opponent = Queen.new(opponent_color, 'g5')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('g5'))
+            allow(opponent).to receive(:search_legal_moves) { %w[f5 f4 e3 g4 g3] }
 
             board = { 'f4' => king,
                       'e5' => ' ',
@@ -751,21 +756,19 @@ RSpec.shared_examples 'a king' do
 
     context 'when king is at a1' do
       let(:current_square) { 'a1' }
-      let(:king) { described_class.new(color, current_square) }
-
-      before { king.instance_variable_set(:@player, player) }
 
       context 'when legal moves are [a2, b2, b1]' do
         let(:legal_moves) { %w[a2 b2 b1] }
 
-        context 'if king is in check at a1 by opponent queen at c2
-            but not in check by another opponent queen at b4' do
-          it 'returns an empty array' do
-            opponent = Queen.new(opponent_color, 'c2')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('c2'))
+        context 'if king is not check by opponent at c2
+            attacking squares b2 a2, or by second opponent
+            at b4 attacking squares b3 b2 b1' do
+          let(:opponent_square) { 'c2' }
+          let(:second_opponent_square) { 'b4' }
 
-            opponent_two = Queen.new(opponent_color, 'b4')
-            opponent_two.instance_variable_set(:@moves, opponent_two.moves_from('b4'))
+          it 'returns an empty array' do
+            allow(opponent).to receive(:search_legal_moves) { %w[a2 b2] }
+            allow(opponent_two).to receive(:search_legal_moves) { %w[b3 b2 b1] }
 
             board = { 'c2' => opponent,
                       'b4' => opponent_two,
@@ -785,11 +788,12 @@ RSpec.shared_examples 'a king' do
       context 'when legal moves are [b1]' do
         let(:legal_moves) { %w[b1] }
 
-        context 'if king is not in check at a1 by opponent queen at c2' do
-          it 'returns an empty array' do
-            opponent = Queen.new(opponent_color, 'c2')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('c2'))
+        context 'if king is not in check by opponent at c2
+            attacking squares b2 c1 b1' do
+          let(:opponent_square) { 'c2' }
 
+          it 'returns an empty array' do
+            allow(opponent).to receive(:search_legal_moves) { %w[b2 c1 b1] }
             board = { 'c2' => opponent,
                       'a1' => king,
                       'a2' => double(color: color),
@@ -808,19 +812,16 @@ RSpec.shared_examples 'a king' do
 
     context 'when king is at e8' do
       let(:current_square) { 'e8' }
-      let(:king) { described_class.new(color, current_square) }
-
-      before { king.instance_variable_set(:@player, player) }
 
       context 'when legal moves are [d8, f8, g8, f7]' do
         let(:legal_moves) { %w[d8 f8 g8 f7] }
 
-        context 'if king is not in check at e8 but
-            opponent queen is at e6 attacking square g8' do
-          it 'returns array of squares: d8, f8' do
-            allow(player).to receive(:castling_move_rook)
+        context 'if king is not in check but opponent at e6
+            attacking squares g8 c8 e7 d7 f7' do
+          let(:opponent_square) { 'e6' }
 
-            opponent = Queen.new(opponent_color, 'e6')
+          it 'returns array of squares: d8, f8' do
+            allow(opponent).to receive(:search_legal_moves) { %w[g8 c8 e7 d7 f7] }
 
             board = { 'e8' => king,
                       'h8' => double('Rook', color: color),
@@ -834,6 +835,8 @@ RSpec.shared_examples 'a king' do
 
             expected_array = %w[d8 f8]
 
+            expect(player).to receive(:castling_move_rook)
+
             selected_legal_moves = king.screen_legal_moves(legal_moves, board)
 
             expect(selected_legal_moves).to match_array(expected_array)
@@ -846,7 +849,6 @@ end
 
 describe King do
   KingMovement.set_up
-  QueenMovement.set_up
 
   context 'with white kings' do
     it_behaves_like 'a king' do
