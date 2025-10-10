@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'piece'
-require_relative 'king'
+require_relative '../piece'
 require_relative '../movements/rook_movement'
+require_relative 'king'
 
 # Chess piece: The Rook
 class Rook < Piece

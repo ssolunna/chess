@@ -6,14 +6,13 @@ class Piece
 
   attr_reader :color, :moves, :legal_moves, :moves_log, :player
 
-  attr_accessor :current_square
+  attr_accessor :current_square, :legal_moves
 
   def initialize(color, square, player = nil)
     player.pieces << self unless player.nil?
 
     @color = color
     @current_square = square
-    @moves = nil
     @legal_moves = nil
     @moves_log = [current_square]
     @player = player

@@ -5,7 +5,7 @@ require_relative '../lib/player'
 
 # Chess Game
 class Game
-  attr_reader :board, :white_player, :black_player
+  attr_reader :board, :white_player, :black_player, :player_in_turn
 
   def initialize
     @board = Board.new
@@ -15,6 +15,22 @@ class Game
     @winner = nil
     @stalemate = false
     @draw = false
+  end
+
+  def player_turns
+    loop do
+      moveable_pieces = search_moveable_pieces
+
+      break if moveable_pieces.none?
+
+      chosen_piece = select_piece_to_move(moveable_pieces)
+
+      move_to_square = select_square_to_move(chosen_piece)
+
+      player_in_turn.move!(move_to_square, chosen_piece)
+
+      switch_player_turn
+    end
   end
 
   def set_pieces
@@ -32,6 +48,40 @@ class Game
   end
 
   private
+
+  def switch_player_turn
+    @player_in_turn = @player_in_turn == @white_player ? @black_player : @white_player
+  end
+
+  def search_moveable_pieces
+    moveable_pieces = []
+
+    player_in_turn.pieces.each do |piece|
+      legal_moves = piece.search_legal_moves(board.chessboard)
+
+      piece.legal_moves = piece.screen_legal_moves(legal_moves, board.chessboard)
+
+      moveable_pieces << piece if piece.legal_moves.any?
+    end
+
+    moveable_pieces
+  end
+
+  def select_piece_to_move(moveable_pieces)
+    pieces_square = moveable_pieces.map(&:current_square)
+
+    square_options = Regexp.union(pieces_square)
+
+    piece_at = player_in_turn.player_input(square_options)
+
+    moveable_pieces.select { |piece| piece.current_square == piece_at }[0]
+  end
+
+  def select_square_to_move(piece)
+    legal_moves_options = Regexp.union(piece.legal_moves)
+
+    player_in_turn.player_input(legal_moves_options)
+  end
 
   def set_white_pieces
     color = 'white'

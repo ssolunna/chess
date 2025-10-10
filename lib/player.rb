@@ -24,6 +24,14 @@ class Player
     @pieces_moved_log = []
   end
 
+  def player_input(regex_pattern)
+    loop do
+      user_input = gets.chomp.downcase
+
+      return user_input if user_input.match?(regex_pattern)
+    end
+  end
+
   def move!(to_square, touched_piece = @touched_piece, board = @board.chessboard)
     take_en_passant(touched_piece, to_square, board) if taking_en_passant?(touched_piece, to_square, board)
     castling_move_rook(touched_piece, to_square, board) if castling?(touched_piece, to_square)
@@ -149,13 +157,5 @@ class Player
 
   def empty_square?(square, board)
     board[square] == EMPTY_SQUARE
-  end
-
-  def player_input(regex_pattern)
-    loop do
-      user_input = gets.chomp.downcase
-
-      return user_input if user_input.match?(regex_pattern)
-    end
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'piece'
+require_relative '../piece'
 require_relative '../movements/king_movement'
 
 # Chess piece: The King
@@ -14,6 +14,8 @@ class King < Piece
   private
 
   def possible_moves(board)
+    moves = moves_from(current_square)
+
     moves.select { |square| opponent_in_square?(square, board) || empty_square?(square, board) }
   end
 

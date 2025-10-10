@@ -9,6 +9,79 @@ describe Game do
   let(:white_player) { chessgame.instance_variable_get(:@white_player) }
   let(:black_player) { chessgame.instance_variable_get(:@black_player) }
 
+  describe '#player_turns' do
+    context 'if player in turn has moveable pieces' do
+      let(:player_in_turn) { white_player }
+
+      let(:first_pawn) { Pawn.new('_', 'a2', player_in_turn) }
+      let(:second_pawn) { Pawn.new('_', 'd2', player_in_turn) }
+      let(:rook) { Rook.new('_', 'h1', player_in_turn) }
+
+      before do
+        chessgame.instance_variable_set(:@player_in_turn, player_in_turn)
+
+        allow(player_in_turn).to receive(:move!)
+
+        allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
+        allow(second_pawn).to receive(:screen_legal_moves) { [] }
+        allow(rook).to receive(:screen_legal_moves) { ['h2'] }
+      end
+
+      it 'prompts player to choose piece and square to move from legal moves' do
+        expect(player_in_turn).to receive(:player_input)
+          .with(/#{first_pawn.current_square}|#{rook.current_square}/)
+          .and_return(first_pawn.current_square)
+
+        expect(player_in_turn).to receive(:player_input)
+          .with(/a3|a4/)
+
+        chessgame.player_turns
+      end
+
+      context 'when player choose a piece' do
+        it 'moves chosen piece to chosen square' do
+          chosen_piece = rook
+          chosen_square = 'h2'
+
+          allow(player_in_turn).to receive(:player_input)
+            .and_return(chosen_piece.current_square, chosen_square)
+
+          expect(player_in_turn).to receive(:move!).with(chosen_square, chosen_piece)
+
+          chessgame.player_turns
+        end
+
+        context 'if white player in turn' do
+          let(:player_in_turn) { white_player }
+
+          it 'switches turn to black player' do
+            allow(player_in_turn).to receive(:player_input)
+              .and_return(first_pawn.current_square, 'a3')
+
+            expect { chessgame.player_turns }
+              .to change(chessgame, :player_in_turn)
+              .from(white_player)
+              .to(black_player)
+          end
+        end
+
+        context 'if black player in turn' do
+          let(:player_in_turn) { black_player }
+
+          it 'switches turn to white player' do
+            allow(player_in_turn).to receive(:player_input)
+              .and_return(first_pawn.current_square, 'a3')
+
+            expect { chessgame.player_turns }
+              .to change(chessgame, :player_in_turn)
+              .from(black_player)
+              .to(white_player)
+          end
+        end
+      end
+    end
+  end
+
   describe '#set_pieces' do
     context 'position white pieces on board' do
       let(:color) { 'white' }
