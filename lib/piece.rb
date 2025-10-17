@@ -4,7 +4,7 @@
 class Piece
   EMPTY_SQUARE = ' '
 
-  attr_reader :color, :moves, :legal_moves, :moves_log, :player
+  attr_reader :color, :moves, :moves_log, :player
 
   attr_accessor :current_square, :legal_moves
 

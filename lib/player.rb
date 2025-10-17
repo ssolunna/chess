@@ -20,19 +20,20 @@ class Player
     @color = color
     @board = board
     @pieces = []
-    @touched_piece = nil
     @pieces_moved_log = []
   end
 
-  def player_input(regex_pattern)
+  def player_input(*args)
+    options = args.flatten.compact.uniq
+
     loop do
       user_input = gets.chomp.downcase
 
-      return user_input if user_input.match?(regex_pattern)
+      return user_input if options.include?(user_input)
     end
   end
 
-  def move!(to_square, touched_piece = @touched_piece, board = @board.chessboard)
+  def move!(to_square, touched_piece, board = @board.chessboard)
     take_en_passant(touched_piece, to_square, board) if taking_en_passant?(touched_piece, to_square, board)
     castling_move_rook(touched_piece, to_square, board) if castling?(touched_piece, to_square)
 
@@ -48,9 +49,9 @@ class Player
     return unless pawn.is_a?(Pawn)
     return unless promoteable?(pawn)
 
-    options_regex = /^(queen|rook|bishop|knight)$/
+    pieces_options = %w[queen rook bishop knight]
 
-    chosen_piece = player_input(options_regex)
+    chosen_piece = player_input(pieces_options)
 
     new_piece = create_piece(chosen_piece.capitalize, pawn.current_square)
 

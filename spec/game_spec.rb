@@ -4,36 +4,63 @@ require_relative '../lib/game'
 
 describe Game do
   let(:empty_square) { ' ' }
+  let(:filename) { 'saved_game.json' }
+
   let(:chessgame) { described_class.new }
   let(:board) { chessgame.instance_variable_get(:@board) }
   let(:white_player) { chessgame.instance_variable_get(:@white_player) }
   let(:black_player) { chessgame.instance_variable_get(:@black_player) }
+  let(:player_in_turn) { chessgame.instance_variable_get(:@player_in_turn) }
+
+  let(:first_pawn) { Pawn.new(player_in_turn.color, 'a2', player_in_turn) }
+  let(:second_pawn) { Pawn.new(player_in_turn.color, 'd2', player_in_turn) }
+  let(:rook) { Rook.new(player_in_turn.color, 'h1', player_in_turn) }
+
+  before do
+    allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
+    allow(second_pawn).to receive(:screen_legal_moves) { [] }
+    allow(rook).to receive(:screen_legal_moves) { ['h2'] }
+  end
 
   describe '#player_turns' do
-    context 'if player in turn has moveable pieces' do
-      let(:player_in_turn) { white_player }
+    before do
+      board.chessboard[first_pawn.current_square] = first_pawn
+      board.chessboard[second_pawn.current_square] = second_pawn
+      board.chessboard[rook.current_square] = rook
+    end
 
-      let(:first_pawn) { Pawn.new('_', 'a2', player_in_turn) }
-      let(:second_pawn) { Pawn.new('_', 'd2', player_in_turn) }
-      let(:rook) { Rook.new('_', 'h1', player_in_turn) }
+    context 'when a saved game file exists' do
+      let(:resumed_game) { described_class.new }
+      let(:second_rook) { Rook.new('black', 'h8', black_player) }
 
-      before do
-        chessgame.instance_variable_set(:@player_in_turn, player_in_turn)
+      it 'loads saved game with same variables' do
+        board.chessboard[second_rook.current_square] = second_rook
 
-        allow(player_in_turn).to receive(:move!)
+        allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+        allow(resumed_game).to receive(:search_moveable_pieces).and_return([])
 
-        allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
-        allow(second_pawn).to receive(:screen_legal_moves) { [] }
-        allow(rook).to receive(:screen_legal_moves) { ['h2'] }
+        allow(white_player).to receive(:player_input)
+          .and_return(first_pawn.current_square, 'a3', 'save')
+
+        allow(black_player).to receive(:player_input)
+          .and_return(second_rook.current_square, 'h7')
+
+        chessgame.player_turns
+
+        resumed_game.player_turns
+
+        expect(resumed_game).eql?(chessgame)
       end
+    end
 
+    context 'if player in turn has moveable pieces' do
       it 'prompts player to choose piece and square to move from legal moves' do
         expect(player_in_turn).to receive(:player_input)
-          .with(/#{first_pawn.current_square}|#{rook.current_square}/)
+          .with([first_pawn.current_square, rook.current_square], 'save')
           .and_return(first_pawn.current_square)
 
         expect(player_in_turn).to receive(:player_input)
-          .with(/a3|a4/)
+          .with(%w[a3 a4])
 
         chessgame.player_turns
       end
@@ -69,6 +96,8 @@ describe Game do
           let(:player_in_turn) { black_player }
 
           it 'switches turn to white player' do
+            chessgame.instance_variable_set(:@player_in_turn, player_in_turn)
+
             allow(player_in_turn).to receive(:player_input)
               .and_return(first_pawn.current_square, 'a3')
 
@@ -77,6 +106,29 @@ describe Game do
               .from(black_player)
               .to(white_player)
           end
+        end
+      end
+
+      context 'when player chooses to save the game' do
+        before do
+          allow(File).to receive(:open)
+
+          allow(player_in_turn).to receive(:player_input)
+            .and_return('save')
+        end
+
+        it 'saves current game in a JSON file' do
+          expect(File).to receive(:open)
+            .with(filename, 'w')
+
+          chessgame.player_turns
+        end
+
+        it 'exits the game' do
+          expect(player_in_turn).not_to receive(:move!)
+
+          expect { chessgame.player_turns }
+            .not_to change(chessgame, :player_in_turn)
         end
       end
     end
