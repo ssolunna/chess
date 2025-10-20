@@ -817,6 +817,10 @@ describe Pawn do
     let!(:setup) { PawnMovement.set_up }
     let!(:player) { Player.new('color', {}) }
 
+    before do
+      allow(player).to receive(:remove_piece)
+    end
+
     context 'with white pawns' do
       let(:color) { 'white' }
       let(:opponent_color) { 'black' }
@@ -829,8 +833,7 @@ describe Pawn do
 
           context 'if king is in check at f2 by opponent pawn at e3' do
             it 'returns array of squares: e3' do
-              white_pawn = described_class.new(color, current_square)
-              white_pawn.instance_variable_set(:@player, player)
+              white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e3')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
@@ -855,8 +858,7 @@ describe Pawn do
 
           context 'if king is not in check at e2 by opponent pawn at e3' do
             it 'returns array of squares: d3, d4, e3, c3' do
-              white_pawn = described_class.new(color, current_square)
-              white_pawn.instance_variable_set(:@player, player)
+              white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e3')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
@@ -881,8 +883,7 @@ describe Pawn do
 
           context 'if king is in check at f2 by opponent pawn at g3' do
             it 'returns an empty array' do
-              white_pawn = described_class.new(color, current_square)
-              white_pawn.instance_variable_set(:@player, player)
+              white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'g3')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g3'))
@@ -914,8 +915,7 @@ describe Pawn do
 
           context 'if king is in check at f4 by opponent pawn at e5' do
             it 'returns array of squares: e6' do
-              white_pawn = described_class.new(color, current_square)
-              white_pawn.instance_variable_set(:@player, player)
+              white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e5')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e5'))
@@ -952,8 +952,7 @@ describe Pawn do
 
           context 'if king is in check at f7 by opponent pawn at e6' do
             it 'returns array of squares: e6' do
-              black_pawn = described_class.new(color, current_square)
-              black_pawn.instance_variable_set(:@player, player)
+              black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e6')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
@@ -978,8 +977,7 @@ describe Pawn do
 
           context 'if king is not in check at e7 by opponent pawn at e6' do
             it 'returns array of squares: d6, d5, e6, c6' do
-              black_pawn = described_class.new(color, current_square)
-              black_pawn.instance_variable_set(:@player, player)
+              black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e6')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
@@ -1004,8 +1002,7 @@ describe Pawn do
 
           context 'if king is in check at f7 by opponent pawn at g6' do
             it 'returns an empty array' do
-              black_pawn = described_class.new(color, current_square)
-              black_pawn.instance_variable_set(:@player, player)
+              black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'g6')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g6'))
@@ -1037,8 +1034,7 @@ describe Pawn do
 
           context 'if king is in check at f5 by opponent pawn at e4' do
             it 'returns array of squares: e3' do
-              black_pawn = described_class.new(color, current_square)
-              black_pawn.instance_variable_set(:@player, player)
+              black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e4')
               opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e4'))

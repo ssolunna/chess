@@ -60,7 +60,7 @@ describe Game do
           .and_return(first_pawn.current_square)
 
         expect(player_in_turn).to receive(:player_input)
-          .with(%w[a3 a4])
+          .with(%w[a3 a4]) { 'a3' }
 
         chessgame.player_turns
       end
@@ -73,7 +73,7 @@ describe Game do
           allow(player_in_turn).to receive(:player_input)
             .and_return(chosen_piece.current_square, chosen_square)
 
-          expect(player_in_turn).to receive(:move!).with(chosen_square, chosen_piece)
+          expect(player_in_turn).to receive(:move!).with(chosen_piece, chosen_square)
 
           chessgame.player_turns
         end

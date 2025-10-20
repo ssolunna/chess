@@ -27,7 +27,7 @@ class Piece
       copied_board = board.dup
       copied_piece = dup
 
-      copied_piece.player.move!(next_move, copied_piece, copied_board)
+      copied_piece.player.move!(copied_piece, next_move, copied_board)
 
       opponent_pieces.each do |opponent_piece|
         moves_to_remove << next_move if opponent_piece.gives_check?(copied_board)

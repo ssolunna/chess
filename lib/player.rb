@@ -33,28 +33,35 @@ class Player
     end
   end
 
-  def move!(to_square, touched_piece, board = @board.chessboard)
+  def move!(touched_piece, to_square, board = @board.chessboard)
     take_en_passant(touched_piece, to_square, board) if taking_en_passant?(touched_piece, to_square, board)
     castling_move_rook(touched_piece, to_square, board) if castling?(touched_piece, to_square)
 
+    remove_piece(board[to_square]) unless empty_square?(to_square, board)
+
     board[to_square] = touched_piece
     board[touched_piece.current_square] = EMPTY_SQUARE
-
     touched_piece.current_square = to_square
-    pieces_moved_log << touched_piece
-    touched_piece.moves_log << to_square
+
+    log_moves(touched_piece, to_square)
+
+    promote(touched_piece) if promoteable?(touched_piece)
   end
 
-  def promote(pawn)
-    return unless pawn.is_a?(Pawn)
-    return unless promoteable?(pawn)
+  def last_touched_piece?(piece)
+    pieces_moved_log.last == piece
+  end
 
+  private
+
+  def promote(pawn)
     pieces_options = %w[queen rook bishop knight]
 
     chosen_piece = player_input(pieces_options)
 
     new_piece = create_piece(chosen_piece.capitalize, pawn.current_square)
 
+    remove_piece(pawn)
     board.chessboard[pawn.current_square] = new_piece
   end
 
@@ -64,16 +71,6 @@ class Player
     last_row_pattern = { 'white' => /^[a-h]8$/, 'black' => /^[a-h]1$/ }
 
     pawn.current_square.match?(last_row_pattern[pawn.color])
-  end
-
-  def last_touched_piece?(piece)
-    pieces_moved_log.last == piece
-  end
-
-  private
-
-  def create_piece(piece, square)
-    Object.const_get(piece).new(color, square, self)
   end
 
   def take_en_passant(pawn, to_square, board)
@@ -116,7 +113,7 @@ class Player
                 end
 
     direction.call(king.current_square) do |next_square|
-      move!(next_square, rook, board)
+      move!(rook, next_square, board)
 
       break
     end
@@ -154,6 +151,20 @@ class Player
         return rook_to_castle[0] if rook_to_castle.any?
       end
     end
+  end
+
+  def create_piece(piece, square)
+    Object.const_get(piece).new(color, square, self)
+  end
+
+  def remove_piece(piece)
+    piece.player.pieces.delete(piece)
+  end
+
+  def log_moves(touched_piece, to_square)
+    touched_piece.moves_log << to_square
+
+    pieces_moved_log << touched_piece
   end
 
   def empty_square?(square, board)

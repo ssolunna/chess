@@ -5,7 +5,6 @@ require_relative '../../lib/player'
 
 RSpec.shared_examples 'a king' do
   describe '#search_legal_moves' do
-    let(:player) { Player.new(color, {}) }
     let(:king) { described_class.new(color, current_square, player) }
 
     context 'without castling moves available' do
@@ -635,7 +634,6 @@ RSpec.shared_examples 'a king' do
   end
 
   describe '#screen_legal_moves' do
-    let(:player) { Player.new(color, {}) }
     let(:king) { described_class.new(color, current_square, player) }
     let(:opponent) { described_class.new(opponent_color, opponent_square, player) }
     let(:opponent_two) { described_class.new(opponent_color, second_opponent_square, player) }
@@ -849,6 +847,12 @@ end
 
 describe King do
   KingMovement.set_up
+
+  let(:player) { Player.new('color', {}) }
+
+  before do
+    allow(player).to receive(:remove_piece)
+  end
 
   context 'with white kings' do
     it_behaves_like 'a king' do

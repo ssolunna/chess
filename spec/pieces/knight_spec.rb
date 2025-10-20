@@ -158,8 +158,7 @@ RSpec.shared_examples 'a knight' do
 
         context 'if king is in check at f8 by opponent night at d7' do
           it 'returns array of squares: d7' do
-            knight = described_class.new(color, current_square)
-            knight.instance_variable_set(:@player, player)
+            knight = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'd7')
             opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
@@ -187,8 +186,7 @@ RSpec.shared_examples 'a knight' do
 
         context 'if king is in check at h3 by opponent knight at f4' do
           it 'returns empty array' do
-            knight = described_class.new(color, current_square)
-            knight.instance_variable_set(:@player, player)
+            knight = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'f4')
             opponent.instance_variable_set(:@moves, opponent.moves_from('f4'))
@@ -215,8 +213,7 @@ RSpec.shared_examples 'a knight' do
 
         context 'if king is not in check at h3 by opponent knight at h5' do
           it 'returns array of squares: d7 g6 g4 f3 c6' do
-            knight = described_class.new(color, current_square)
-            knight.instance_variable_set(:@player, player)
+            knight = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'h5')
             opponent.instance_variable_set(:@moves, opponent.moves_from('h5'))
@@ -250,7 +247,11 @@ end
 describe Knight do
   KnightMovement.set_up
 
-  let!(:player) { Player.new('color', {}) }
+  let(:player) { Player.new('color', {}) }
+
+  before do
+    allow(player).to receive(:remove_piece)
+  end
 
   context 'with white knights' do
     it_behaves_like 'a knight' do

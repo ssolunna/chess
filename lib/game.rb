@@ -36,7 +36,7 @@ class Game
 
       move_to_square = select_square_to_move(chosen_piece)
 
-      player_in_turn.move!(move_to_square, chosen_piece)
+      player_in_turn.move!(chosen_piece, move_to_square)
 
       switch_player_turn
     end
