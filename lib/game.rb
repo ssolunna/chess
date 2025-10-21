@@ -22,6 +22,14 @@ class Game
     @draw = false
   end
 
+  def play
+    set_pieces unless File.exist?(FILENAME)
+    set_up_pieces_movements
+    player_turns
+  end
+
+  private
+
   def player_turns
     load_game if File.exist?(FILENAME)
 
@@ -43,8 +51,32 @@ class Game
   end
 
   def set_pieces
-    set_white_pieces
-    set_black_pieces
+    positions = { Pawn:
+                    { white: %w[a2 b2 c2 d2 e2 f2 g2 h2],
+                      black: %w[a7 b7 c7 d7 e7 f7 g7 h7] },
+                  Rook:
+                    { white: %w[a1 h1],
+                      black: %w[a8 h8] },
+                  Knight:
+                    { white: %w[b1 g1],
+                      black: %w[b8 g8] },
+                  Bishop:
+                    { white: %w[c1 f1],
+                      black: %w[c8 f8] },
+                  Queen:
+                    { white: %w[d1],
+                      black: %w[d8] },
+                  King:
+                    { white: %w[e1],
+                      black: %w[e8] } }
+
+    positions.each do |piece, position|
+      position.each do |color, squares|
+        squares.each do |square|
+          board.chessboard[square] = create_piece(piece, color.to_s, square)
+        end
+      end
+    end
   end
 
   def set_up_pieces_movements
@@ -56,7 +88,43 @@ class Game
     KingMovement.set_up
   end
 
-  private
+  def search_moveable_pieces
+    moveable_pieces = []
+
+    player_in_turn.pieces.each do |piece|
+      legal_moves = piece.search_legal_moves(board.chessboard)
+
+      piece.legal_moves = piece.screen_legal_moves(legal_moves, board.chessboard)
+
+      moveable_pieces << piece if piece.legal_moves.any?
+    end
+
+    moveable_pieces
+  end
+
+  def select_piece_to_move(moveable_pieces)
+    pieces_square = moveable_pieces.map(&:current_square)
+
+    choice = player_in_turn.player_input(pieces_square, 'save')
+
+    return choice if choice == 'save'
+
+    moveable_pieces.select { |piece| piece.current_square == choice }[0]
+  end
+
+  def select_square_to_move(piece)
+    player_in_turn.player_input(piece.legal_moves)
+  end
+
+  def switch_player_turn
+    @player_in_turn = @player_in_turn == @white_player ? @black_player : @white_player
+  end
+
+  def create_piece(piece, color, square)
+    player = color == 'white' ? @white_player : @black_player
+
+    Object.const_get(piece).new(color, square, player)
+  end
 
   def save_game
     File.open(FILENAME, 'w') do |file|
@@ -87,9 +155,7 @@ class Game
   end
 
   def deserialize_piece(data)
-    player = data['color'] == 'white' ? @white_player : @black_player
-
-    piece = create_piece(data['name'], data['color'], data['current_square'], player)
+    piece = create_piece(data['name'], data['color'], data['current_square'])
 
     piece.legal_moves = data['legal_moves']
 
@@ -147,73 +213,5 @@ class Game
     {
       pieces_moved_log: player.pieces_moved_log.map { |piece| serialize_piece(piece) }
     }
-  end
-
-  def switch_player_turn
-    @player_in_turn = @player_in_turn == @white_player ? @black_player : @white_player
-  end
-
-  def search_moveable_pieces
-    moveable_pieces = []
-
-    player_in_turn.pieces.each do |piece|
-      legal_moves = piece.search_legal_moves(board.chessboard)
-
-      piece.legal_moves = piece.screen_legal_moves(legal_moves, board.chessboard)
-
-      moveable_pieces << piece if piece.legal_moves.any?
-    end
-
-    moveable_pieces
-  end
-
-  def select_piece_to_move(moveable_pieces)
-    pieces_square = moveable_pieces.map(&:current_square)
-
-    choice = player_in_turn.player_input(pieces_square, 'save')
-
-    return choice if choice == 'save'
-
-    moveable_pieces.select { |piece| piece.current_square == choice }[0]
-  end
-
-  def select_square_to_move(piece)
-    player_in_turn.player_input(piece.legal_moves)
-  end
-
-  def set_white_pieces
-    color = 'white'
-    positions = { Pawn: %w[a2 b2 c2 d2 e2 f2 g2 h2],
-                  Rook: %w[a1 h1],
-                  Knight: %w[b1 g1],
-                  Bishop: %w[c1 f1],
-                  Queen: %w[d1],
-                  King: %w[e1] }
-
-    positions.each do |piece, squares|
-      squares.each do |square|
-        board.chessboard[square] = create_piece(piece, color, square, white_player)
-      end
-    end
-  end
-
-  def set_black_pieces
-    color = 'black'
-    positions = { Pawn: %w[a7 b7 c7 d7 e7 f7 g7 h7],
-                  Rook: %w[a8 h8],
-                  Knight: %w[b8 g8],
-                  Bishop: %w[c8 f8],
-                  Queen: %w[d8],
-                  King: %w[e8] }
-
-    positions.each do |piece, squares|
-      squares.each do |square|
-        board.chessboard[square] = create_piece(piece, color, square, black_player)
-      end
-    end
-  end
-
-  def create_piece(piece, color, square, player = nil)
-    Object.const_get(piece).new(color, square, player)
   end
 end

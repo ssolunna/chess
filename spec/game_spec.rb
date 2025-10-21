@@ -8,6 +8,7 @@ describe Game do
 
   let(:chessgame) { described_class.new }
   let(:board) { chessgame.instance_variable_get(:@board) }
+
   let(:white_player) { chessgame.instance_variable_get(:@white_player) }
   let(:black_player) { chessgame.instance_variable_get(:@black_player) }
   let(:player_in_turn) { chessgame.instance_variable_get(:@player_in_turn) }
@@ -22,16 +23,200 @@ describe Game do
     allow(rook).to receive(:screen_legal_moves) { ['h2'] }
   end
 
-  describe '#player_turns' do
-    before do
-      board.chessboard[first_pawn.current_square] = first_pawn
-      board.chessboard[second_pawn.current_square] = second_pawn
-      board.chessboard[rook.current_square] = rook
+  describe '#play' do
+    it 'sends messages to set up all 6 pieces movements' do
+      allow(chessgame).to receive(:set_pieces)
+      allow(chessgame).to receive(:player_turns)
+
+      expect(PawnMovement).to receive(:set_up)
+      expect(RookMovement).to receive(:set_up)
+      expect(KnightMovement).to receive(:set_up)
+      expect(BishopMovement).to receive(:set_up)
+      expect(QueenMovement).to receive(:set_up)
+      expect(KingMovement).to receive(:set_up)
+
+      chessgame.play
+    end
+
+    context 'when there is no saved game file' do
+      before do
+        allow(chessgame).to receive(:set_up_pieces_movements)
+        allow(chessgame).to receive(:player_turns)
+      end
+
+      context 'position new white pieces on board' do
+        let(:color) { 'white' }
+
+        %w[a2 b2 c2 d2 e2 f2 g2 h2].each do |square|
+          it "places white pawn on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Pawn) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: white_player))
+          end
+        end
+
+        %w[a1 h1].each do |square|
+          it "places white rook on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Rook) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: white_player))
+          end
+        end
+
+        %w[b1 g1].each do |square|
+          it "places white knight on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Knight) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: white_player))
+          end
+        end
+
+        %w[c1 f1].each do |square|
+          it "places white bishop on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Bishop) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: white_player))
+          end
+        end
+
+        it 'places white queen on d1 square' do
+          square = 'd1'
+
+          expect { chessgame.play }
+            .to change { board.chessboard[square] }
+            .from(empty_square)
+            .to(be_a(Queen) &
+                have_attributes(color: color,
+                                current_square: square,
+                                player: white_player))
+        end
+
+        it 'places white king on e1 square' do
+          square = 'e1'
+
+          expect { chessgame.play }
+            .to change { board.chessboard[square] }
+            .from(empty_square)
+            .to(be_a(King) &
+                have_attributes(color: color,
+                                current_square: square,
+                                player: white_player))
+        end
+      end
+
+      context 'position new black pieces on board' do
+        let(:color) { 'black' }
+
+        %w[a7 b7 c7 d7 e7 f7 g7 h7].each do |square|
+          it "places black pawn on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Pawn) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: black_player))
+          end
+        end
+
+        %w[a8 h8].each do |square|
+          it "places black rook on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Rook) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: black_player))
+          end
+        end
+
+        %w[b8 g8].each do |square|
+          it "places black knight on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Knight) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: black_player))
+          end
+        end
+
+        %w[c8 f8].each do |square|
+          it "places black bishop on #{square} square" do
+            expect { chessgame.play }
+              .to change { board.chessboard[square] }
+              .from(empty_square)
+              .to(be_a(Bishop) &
+                  have_attributes(color: color,
+                                  current_square: square,
+                                  player: black_player))
+          end
+        end
+
+        it 'places black queen on d8 square' do
+          square = 'd8'
+
+          expect { chessgame.play }
+            .to change { board.chessboard[square] }
+            .from(empty_square)
+            .to(be_a(Queen) &
+                have_attributes(color: color,
+                                current_square: square,
+                                player: black_player))
+        end
+
+        it 'places black king on e8 square' do
+          square = 'e8'
+
+          expect { chessgame.play }
+            .to change { board.chessboard[square] }
+            .from(empty_square)
+            .to(be_a(King) &
+                have_attributes(color: color,
+                                current_square: square,
+                                player: black_player))
+        end
+      end
     end
 
     context 'when a saved game file exists' do
       let(:resumed_game) { described_class.new }
       let(:second_rook) { Rook.new('black', 'h8', black_player) }
+      before do
+        allow(chessgame).to receive(:set_pieces)
+        allow(chessgame).to receive(:set_up_pieces_movements)
+
+        board.chessboard[first_pawn.current_square] = first_pawn
+        board.chessboard[second_pawn.current_square] = second_pawn
+        board.chessboard[rook.current_square] = rook
+      end
+
+      it 'does not set new pieces' do
+        allow(chessgame).to receive(:player_turns)
+        allow(File).to receive(:exist?).with(filename) { true }
+
+        expect(chessgame).not_to receive(:set_pieces)
+
+        chessgame.play
+      end
 
       it 'loads saved game with same variables' do
         board.chessboard[second_rook.current_square] = second_rook
@@ -45,15 +230,20 @@ describe Game do
         allow(black_player).to receive(:player_input)
           .and_return(second_rook.current_square, 'h7')
 
-        chessgame.player_turns
+        chessgame.play
 
-        resumed_game.player_turns
+        resumed_game.play
 
         expect(resumed_game).eql?(chessgame)
       end
     end
 
     context 'if player in turn has moveable pieces' do
+      before do
+        allow(chessgame).to receive(:set_pieces)
+        allow(chessgame).to receive(:set_up_pieces_movements)
+      end
+
       it 'prompts player to choose piece and square to move from legal moves' do
         expect(player_in_turn).to receive(:player_input)
           .with([first_pawn.current_square, rook.current_square], 'save')
@@ -62,7 +252,7 @@ describe Game do
         expect(player_in_turn).to receive(:player_input)
           .with(%w[a3 a4]) { 'a3' }
 
-        chessgame.player_turns
+        chessgame.play
       end
 
       context 'when player choose a piece' do
@@ -75,7 +265,7 @@ describe Game do
 
           expect(player_in_turn).to receive(:move!).with(chosen_piece, chosen_square)
 
-          chessgame.player_turns
+          chessgame.play
         end
 
         context 'if white player in turn' do
@@ -85,7 +275,7 @@ describe Game do
             allow(player_in_turn).to receive(:player_input)
               .and_return(first_pawn.current_square, 'a3')
 
-            expect { chessgame.player_turns }
+            expect { chessgame.play }
               .to change(chessgame, :player_in_turn)
               .from(white_player)
               .to(black_player)
@@ -101,7 +291,7 @@ describe Game do
             allow(player_in_turn).to receive(:player_input)
               .and_return(first_pawn.current_square, 'a3')
 
-            expect { chessgame.player_turns }
+            expect { chessgame.play }
               .to change(chessgame, :player_in_turn)
               .from(black_player)
               .to(white_player)
@@ -121,183 +311,16 @@ describe Game do
           expect(File).to receive(:open)
             .with(filename, 'w')
 
-          chessgame.player_turns
+          chessgame.play
         end
 
         it 'exits the game' do
           expect(player_in_turn).not_to receive(:move!)
 
-          expect { chessgame.player_turns }
+          expect { chessgame.play }
             .not_to change(chessgame, :player_in_turn)
         end
       end
-    end
-  end
-
-  describe '#set_pieces' do
-    context 'position white pieces on board' do
-      let(:color) { 'white' }
-
-      %w[a2 b2 c2 d2 e2 f2 g2 h2].each do |square|
-        it "places white pawn on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Pawn) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: white_player))
-        end
-      end
-
-      %w[a1 h1].each do |square|
-        it "places white rook on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Rook) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: white_player))
-        end
-      end
-
-      %w[b1 g1].each do |square|
-        it "places white knight on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Knight) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: white_player))
-        end
-      end
-
-      %w[c1 f1].each do |square|
-        it "places white bishop on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Bishop) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: white_player))
-        end
-      end
-
-      it 'places white queen on d1 square' do
-        square = 'd1'
-
-        expect { chessgame.set_pieces }
-          .to change { board.chessboard[square] }
-          .from(empty_square)
-          .to(be_a(Queen) &
-              have_attributes(color: color,
-                              current_square: square,
-                              player: white_player))
-      end
-
-      it 'places white king on e1 square' do
-        square = 'e1'
-
-        expect { chessgame.set_pieces }
-          .to change { board.chessboard[square] }
-          .from(empty_square)
-          .to(be_a(King) &
-              have_attributes(color: color,
-                              current_square: square,
-                              player: white_player))
-      end
-    end
-
-    context 'position black pieces on board' do
-      let(:color) { 'black' }
-
-      %w[a7 b7 c7 d7 e7 f7 g7 h7].each do |square|
-        it "places black pawn on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Pawn) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: black_player))
-        end
-      end
-
-      %w[a8 h8].each do |square|
-        it "places black rook on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Rook) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: black_player))
-        end
-      end
-
-      %w[b8 g8].each do |square|
-        it "places black knight on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Knight) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: black_player))
-        end
-      end
-
-      %w[c8 f8].each do |square|
-        it "places black bishop on #{square} square" do
-          expect { chessgame.set_pieces }
-            .to change { board.chessboard[square] }
-            .from(empty_square)
-            .to(be_a(Bishop) &
-                have_attributes(color: color,
-                                current_square: square,
-                                player: black_player))
-        end
-      end
-
-      it 'places black queen on d8 square' do
-        square = 'd8'
-
-        expect { chessgame.set_pieces }
-          .to change { board.chessboard[square] }
-          .from(empty_square)
-          .to(be_a(Queen) &
-              have_attributes(color: color,
-                              current_square: square,
-                              player: black_player))
-      end
-
-      it 'places black king on e8 square' do
-        square = 'e8'
-
-        expect { chessgame.set_pieces }
-          .to change { board.chessboard[square] }
-          .from(empty_square)
-          .to(be_a(King) &
-              have_attributes(color: color,
-                              current_square: square,
-                              player: black_player))
-      end
-    end
-  end
-
-  describe '#set_up_pieces_movements' do
-    it 'sends messages to set up all 6 pieces movements' do
-      expect(PawnMovement).to receive(:set_up)
-      expect(RookMovement).to receive(:set_up)
-      expect(KnightMovement).to receive(:set_up)
-      expect(BishopMovement).to receive(:set_up)
-      expect(QueenMovement).to receive(:set_up)
-      expect(KingMovement).to receive(:set_up)
-
-      chessgame.set_up_pieces_movements
     end
   end
 end

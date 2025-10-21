@@ -16,8 +16,6 @@ module BishopMovement
     @@movements = lay_out
   end
 
-  private
-
   def self.lay_out(layout = {}, queue = %w[a1 h1])
     return layout if queue.empty?
 
