@@ -36,7 +36,7 @@ class Game
     loop do
       moveable_pieces = search_moveable_pieces
 
-      break if moveable_pieces.none?
+      return end_game if moveable_pieces.none?
 
       chosen_piece = select_piece_to_move(moveable_pieces)
 
@@ -117,7 +117,7 @@ class Game
   end
 
   def switch_player_turn
-    @player_in_turn = @player_in_turn == @white_player ? @black_player : @white_player
+    @player_in_turn = select_opponent
   end
 
   def create_piece(piece, color, square)
@@ -213,5 +213,21 @@ class Game
     {
       pieces_moved_log: player.pieces_moved_log.map { |piece| serialize_piece(piece) }
     }
+  end
+
+  def end_game
+    if mated?
+      @winner = select_opponent
+    else
+      @stalemate = true
+    end
+  end
+
+  def mated?
+    select_opponent.pieces.select { |piece| piece.gives_check?(board.chessboard) }.any?
+  end
+
+  def select_opponent
+    @player_in_turn == white_player ? black_player : white_player
   end
 end

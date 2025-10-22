@@ -268,7 +268,7 @@ describe Game do
           chessgame.play
         end
 
-        context 'if white player in turn' do
+        context 'if white player is in turn' do
           let(:player_in_turn) { white_player }
 
           it 'switches turn to black player' do
@@ -282,7 +282,7 @@ describe Game do
           end
         end
 
-        context 'if black player in turn' do
+        context 'if black player is in turn' do
           let(:player_in_turn) { black_player }
 
           it 'switches turn to white player' do
@@ -319,6 +319,89 @@ describe Game do
 
           expect { chessgame.play }
             .not_to change(chessgame, :player_in_turn)
+        end
+      end
+    end
+
+    context 'if player in turn does not have moveable pieces' do
+      before do
+        allow(chessgame).to receive(:set_pieces)
+        allow(chessgame).to receive(:set_up_pieces_movements)
+        allow(chessgame).to receive(:search_moveable_pieces)
+          .and_return([])
+      end
+
+      it 'does not prompt player to choose piece and square to move' do
+        expect(player_in_turn).not_to receive(:player_input)
+
+        chessgame.play
+      end
+
+      context 'when player is checkmated' do
+        context 'if white king is in check' do
+          let(:w_king) { King.new('white', 'a1', white_player) }
+          let(:b_rook) { Rook.new('black', 'a4', black_player) }
+
+          it 'declares black player the winner' do
+            board.chessboard[w_king.current_square] = w_king
+            board.chessboard[b_rook.current_square] = b_rook
+
+            expect { chessgame.play }
+              .to change { chessgame.winner }
+              .from(nil)
+              .to(black_player)
+          end
+        end
+
+        context 'if black king is in check' do
+          let(:b_king) { King.new('black', 'a8', black_player) }
+          let(:w_rook) { Rook.new('white', 'a5', white_player) }
+
+          it 'declares white player the winner' do
+            chessgame.instance_variable_set(:@player_in_turn, black_player)
+
+            board.chessboard[b_king.current_square] = b_king
+            board.chessboard[w_rook.current_square] = w_rook
+
+            expect { chessgame.play }
+              .to change { chessgame.winner }
+              .from(nil)
+              .to(white_player)
+          end
+        end
+      end
+
+      context 'when player is stalemated' do
+        context 'if white king is not in check' do
+          let(:w_king) { King.new('white', 'a1', white_player) }
+          let(:b_rook) { Rook.new('black', 'b4', black_player) }
+
+          it 'declares a draw by stalemate' do
+            board.chessboard[w_king.current_square] = w_king
+            board.chessboard[b_rook.current_square] = b_rook
+
+            expect { chessgame.play }
+              .to change { chessgame.stalemate }
+              .from(false)
+              .to(true)
+          end
+        end
+
+        context 'if black king is not in check' do
+          let(:b_king) { King.new('black', 'a8', black_player) }
+          let(:w_rook) { Rook.new('white', 'b5', white_player) }
+
+          it 'declares a draw by stalemate' do
+            chessgame.instance_variable_set(:@player_in_turn, black_player)
+
+            board.chessboard[b_king.current_square] = b_king
+            board.chessboard[w_rook.current_square] = w_rook
+
+            expect { chessgame.play }
+              .to change { chessgame.stalemate }
+              .from(false)
+              .to(true)
+          end
         end
       end
     end
