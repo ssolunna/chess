@@ -8,7 +8,8 @@ require 'json'
 # Chess Game
 class Game
   attr_reader :board, :white_player, :black_player,
-              :player_in_turn, :winner, :stalemate, :draw
+              :player_in_turn, :winner, :stalemate, :draw,
+              :resign
 
   FILENAME = 'saved_game.json'
 
@@ -19,6 +20,7 @@ class Game
     @player_in_turn = @white_player
     @winner = nil
     @stalemate = false
+    @resign = false
     @draw = false
   end
 
@@ -36,17 +38,24 @@ class Game
     loop do
       moveable_pieces = search_moveable_pieces
 
-      return end_game if moveable_pieces.none?
+      return set_winner if moveable_pieces.none?
 
-      chosen_piece = select_piece_to_move(moveable_pieces)
+      choice = select_piece_to_move(moveable_pieces)
 
-      return save_game if chosen_piece == 'save'
+      return end_game(choice) if default_options.include?(choice)
 
-      move_to_square = select_square_to_move(chosen_piece)
+      move_to_square = select_square_to_move(choice)
 
-      player_in_turn.move!(chosen_piece, move_to_square)
+      player_in_turn.move!(choice, move_to_square)
 
       switch_player_turn
+    end
+  end
+
+  def end_game(choice)
+    case choice
+    when 'save' then save_game
+    when 'resign' then resign_game
     end
   end
 
@@ -105,9 +114,9 @@ class Game
   def select_piece_to_move(moveable_pieces)
     pieces_square = moveable_pieces.map(&:current_square)
 
-    choice = player_in_turn.player_input(pieces_square, 'save')
+    choice = player_in_turn.player_input(pieces_square, default_options)
 
-    return choice if choice == 'save'
+    return choice if default_options.include?(choice)
 
     moveable_pieces.select { |piece| piece.current_square == choice }[0]
   end
@@ -215,8 +224,8 @@ class Game
     }
   end
 
-  def end_game
-    if mated?
+  def set_winner
+    if @resign == true || mated?
       @winner = select_opponent
     else
       @stalemate = true
@@ -227,7 +236,17 @@ class Game
     select_opponent.pieces.select { |piece| piece.gives_check?(board.chessboard) }.any?
   end
 
+  def resign_game
+    @resign = true
+
+    set_winner
+  end
+
   def select_opponent
     @player_in_turn == white_player ? black_player : white_player
+  end
+
+  def default_options
+    %w[save resign]
   end
 end

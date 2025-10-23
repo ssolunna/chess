@@ -246,7 +246,7 @@ describe Game do
 
       it 'prompts player to choose piece and square to move from legal moves' do
         expect(player_in_turn).to receive(:player_input)
-          .with([first_pawn.current_square, rook.current_square], 'save')
+          .with([first_pawn.current_square, rook.current_square], any_args)
           .and_return(first_pawn.current_square)
 
         expect(player_in_turn).to receive(:player_input)
@@ -303,7 +303,7 @@ describe Game do
         before do
           allow(File).to receive(:open)
 
-          allow(player_in_turn).to receive(:player_input)
+          allow(player_in_turn).to receive(:gets)
             .and_return('save')
         end
 
@@ -319,6 +319,29 @@ describe Game do
 
           expect { chessgame.play }
             .not_to change(chessgame, :player_in_turn)
+        end
+      end
+
+      context 'when player chooses to resign' do
+        before do
+          allow(player_in_turn).to receive(:gets)
+            .and_return('resign')
+        end
+
+        it 'ends the game' do
+          expect(player_in_turn).not_to receive(:move!)
+
+          chessgame.play
+        end
+
+        it 'declares the opponent the winner by resignation' do
+          expect { chessgame.play }
+            .to change { chessgame.winner }
+            .from(nil)
+            .to(black_player)
+            .and change { chessgame.resign }
+            .from(false)
+            .to(true)
         end
       end
     end
