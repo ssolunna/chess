@@ -9,7 +9,7 @@ require 'json'
 class Game
   attr_reader :board, :white_player, :black_player,
               :player_in_turn, :winner, :stalemate, :draw,
-              :resign
+              :resign, :draw_agreed
 
   FILENAME = 'saved_game.json'
 
@@ -21,7 +21,7 @@ class Game
     @winner = nil
     @stalemate = false
     @resign = false
-    @draw = false
+    @draw_agreed = false
   end
 
   def play
@@ -48,8 +48,22 @@ class Game
 
       player_in_turn.move!(choice, move_to_square)
 
+      return if draw_proposal && draw_agreed
+
       switch_player_turn
     end
+  end
+
+  def draw_proposal
+    player_in_turn_input = gets.chomp.downcase
+
+    return false unless player_in_turn_input == 'draw'
+
+    opponent_player_input = gets.chomp.downcase
+
+    return false unless opponent_player_input == 'draw'
+
+    @draw_agreed = true
   end
 
   def end_game(choice)

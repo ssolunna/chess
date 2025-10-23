@@ -16,8 +16,10 @@ describe Game do
   let(:first_pawn) { Pawn.new(player_in_turn.color, 'a2', player_in_turn) }
   let(:second_pawn) { Pawn.new(player_in_turn.color, 'd2', player_in_turn) }
   let(:rook) { Rook.new(player_in_turn.color, 'h1', player_in_turn) }
+  let(:second_rook) { Rook.new('black', 'h8', black_player) }
 
   before do
+    allow(chessgame).to receive(:gets) { '' }
     allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
     allow(second_pawn).to receive(:screen_legal_moves) { [] }
     allow(rook).to receive(:screen_legal_moves) { ['h2'] }
@@ -199,7 +201,7 @@ describe Game do
 
     context 'when a saved game file exists' do
       let(:resumed_game) { described_class.new }
-      let(:second_rook) { Rook.new('black', 'h8', black_player) }
+
       before do
         allow(chessgame).to receive(:set_pieces)
         allow(chessgame).to receive(:set_up_pieces_movements)
@@ -207,6 +209,8 @@ describe Game do
         board.chessboard[first_pawn.current_square] = first_pawn
         board.chessboard[second_pawn.current_square] = second_pawn
         board.chessboard[rook.current_square] = rook
+
+        board.chessboard[second_rook.current_square] = second_rook
       end
 
       it 'does not set new pieces' do
@@ -219,8 +223,6 @@ describe Game do
       end
 
       it 'loads saved game with same variables' do
-        board.chessboard[second_rook.current_square] = second_rook
-
         allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
         allow(resumed_game).to receive(:search_moveable_pieces).and_return([])
 
@@ -260,7 +262,7 @@ describe Game do
           chosen_piece = rook
           chosen_square = 'h2'
 
-          allow(player_in_turn).to receive(:player_input)
+          allow(player_in_turn).to receive(:gets)
             .and_return(chosen_piece.current_square, chosen_square)
 
           expect(player_in_turn).to receive(:move!).with(chosen_piece, chosen_square)
@@ -272,7 +274,7 @@ describe Game do
           let(:player_in_turn) { white_player }
 
           it 'switches turn to black player' do
-            allow(player_in_turn).to receive(:player_input)
+            allow(player_in_turn).to receive(:gets)
               .and_return(first_pawn.current_square, 'a3')
 
             expect { chessgame.play }
@@ -288,7 +290,7 @@ describe Game do
           it 'switches turn to white player' do
             chessgame.instance_variable_set(:@player_in_turn, player_in_turn)
 
-            allow(player_in_turn).to receive(:player_input)
+            allow(player_in_turn).to receive(:gets)
               .and_return(first_pawn.current_square, 'a3')
 
             expect { chessgame.play }
@@ -344,6 +346,49 @@ describe Game do
             .to(true)
         end
       end
+
+      context 'when player proposes a draw' do
+        before do
+          allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+
+          allow(player_in_turn).to receive(:gets)
+            .and_return(first_pawn.current_square, 'a3', 'resign')
+
+          allow(black_player).to receive(:gets)
+            .and_return(second_rook.current_square, 'h7')
+        end
+
+        context 'if opponents agrees' do
+          before do
+            allow(chessgame).to receive(:gets)
+              .and_return('draw', 'draw')
+          end
+
+          it 'ends the game' do
+            expect(black_player).not_to receive(:move!)
+
+            chessgame.play
+          end
+
+          it 'declares draw' do
+            expect { chessgame.play }
+              .to change { chessgame.draw_agreed }
+              .from(false)
+              .to(true)
+          end
+        end
+
+        context 'if opponent refuses' do
+          it 'continue playing' do
+            allow(chessgame).to receive(:gets)
+              .and_return('draw', 'refuse')
+
+            expect(black_player).to receive(:move!)
+
+            chessgame.play
+          end
+        end
+      end
     end
 
     context 'if player in turn does not have moveable pieces' do
@@ -355,7 +400,7 @@ describe Game do
       end
 
       it 'does not prompt player to choose piece and square to move' do
-        expect(player_in_turn).not_to receive(:player_input)
+        expect(player_in_turn).not_to receive(:gets)
 
         chessgame.play
       end
