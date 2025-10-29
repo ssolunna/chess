@@ -1,18 +1,27 @@
 # frozen_string_literal: true
 
+require_relative '../lib/serialization'
+require_relative '../lib/fen'
 require_relative '../lib/board'
 require_relative '../lib/player'
-require_relative '../lib/serialization'
+require_relative './pieces/king'
+require_relative './pieces/queen'
+require_relative './pieces/rook'
+require_relative './pieces/bishop'
+require_relative './pieces/knight'
+require_relative './pieces/pawn'
 
 require 'json'
 
 # Chess Game
 class Game
   include Serialize
+  include FEN
 
   attr_reader :board, :white_player, :black_player,
               :player_in_turn, :winner, :stalemate, :draw,
-              :resign, :draw_agreed
+              :resign, :draw_agreed, :fen_log,
+              :halfmove_clock, :fullmove_number
 
   FILENAME = 'saved_game.json'
 
@@ -25,11 +34,15 @@ class Game
     @stalemate = false
     @resign = false
     @draw_agreed = false
+    @fen_log = []
+    @halfmove_clock = 0
+    @fullmove_number = 1
   end
 
   def play
-    set_pieces unless File.exist?(FILENAME)
     set_up_pieces_movements
+    set_pieces unless File.exist?(FILENAME)
+    @fen_log << record_fen(board.chessboard)
     player_turns
   end
 
@@ -49,12 +62,34 @@ class Game
 
       move_to_square = select_square_to_move(choice)
 
+      piece_at_moved_square = board.chessboard[move_to_square]
+
       player_in_turn.move!(choice, move_to_square)
+
+      save_fen_record(choice, piece_at_moved_square)
 
       return if draw_proposal && draw_agreed
 
       switch_player_turn
     end
+  end
+
+  def save_fen_record(chosen_piece, piece_at_moved_square)
+    update_halfmove_clock(chosen_piece, piece_at_moved_square)
+
+    @fullmove_number += 1 if @player_in_turn == @black_player
+
+    @fen_log << record_fen(board.chessboard, chosen_piece)
+  end
+
+  def update_halfmove_clock(chosen_piece, piece_at_moved_square)
+    if chosen_piece.is_a?(Pawn) || piece_at_moved_square.is_a?(Piece)
+      @halfmove_clock = 0
+
+      return
+    end
+
+    @halfmove_clock += 1
   end
 
   def draw_proposal
@@ -180,10 +215,6 @@ class Game
 
   def select_opponent
     @player_in_turn == white_player ? black_player : white_player
-  end
-
-  def set_player_in_turn(color)
-    @player_in_turn = color == 'white' ? white_player : black_player
   end
 
   def default_options

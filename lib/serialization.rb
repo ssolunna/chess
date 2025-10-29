@@ -6,7 +6,9 @@ module Serialize
       board: serialize_chessboard(board.chessboard),
       white_player: serialize_player(white_player),
       black_player: serialize_player(black_player),
-      player_in_turn: player_in_turn.color
+      player_in_turn: player_in_turn.color,
+      halfmove_clock: halfmove_clock,
+      fullmove_number: fullmove_number
     }
   end
 
@@ -41,7 +43,11 @@ module Serialize
     deserialize_player(white_player, data['white_player'])
     deserialize_player(black_player, data['black_player'])
 
-    set_player_in_turn(data['player_in_turn'])
+    player = data['player_in_turn'] == 'white' ? white_player : black_player
+    instance_variable_set(:@player_in_turn, player)
+
+    instance_variable_set(:@halfmove_clock, data['halfmove_clock'])
+    instance_variable_set(:@fullmove_number, data['fullmove_number'])
   end
 
   def deserialize_board(data)

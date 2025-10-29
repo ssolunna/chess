@@ -40,6 +40,19 @@ describe Game do
       chessgame.play
     end
 
+    it 'saves an initial FEN record of the game' do
+      allow(chessgame).to receive(:set_up_pieces_movements)
+      allow(chessgame).to receive(:player_turns)
+
+      initial_fen_record = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+      chessgame.play
+
+      fen_record = chessgame.instance_variable_get(:@fen_log).first
+
+      expect(fen_record).to eql(initial_fen_record)
+    end
+
     context 'when there is no saved game file' do
       before do
         allow(chessgame).to receive(:set_up_pieces_movements)
@@ -257,7 +270,7 @@ describe Game do
         chessgame.play
       end
 
-      context 'when player choose a piece' do
+      context 'when player choose a piece to move' do
         it 'moves chosen piece to chosen square' do
           chosen_piece = rook
           chosen_square = 'h2'
@@ -268,6 +281,67 @@ describe Game do
           expect(player_in_turn).to receive(:move!).with(chosen_piece, chosen_square)
 
           chessgame.play
+        end
+
+        it 'saves a FEN record of the move in a log variable' do
+          allow(chessgame).to receive(:set_pieces).and_call_original
+
+          allow(chessgame).to receive(:gets)
+            .and_return('draw', 'draw')
+
+          allow(white_player).to receive(:gets)
+            .and_return(first_pawn.current_square, 'a4', 'draw')
+
+          expected_fen_record = 'rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1'
+
+          chessgame.play
+
+          fen_log = chessgame.instance_variable_get(:@fen_log)
+
+          expect(fen_log.last).to eql(expected_fen_record)
+        end
+
+        context 'when player proposes a draw' do
+          before do
+            allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+
+            allow(player_in_turn).to receive(:gets)
+              .and_return(first_pawn.current_square, 'a3', 'resign')
+
+            allow(black_player).to receive(:gets)
+              .and_return(second_rook.current_square, 'h7')
+          end
+
+          context 'if opponents agrees' do
+            before do
+              allow(chessgame).to receive(:gets)
+                .and_return('draw', 'draw')
+            end
+
+            it 'ends the game' do
+              expect(black_player).not_to receive(:move!)
+
+              chessgame.play
+            end
+
+            it 'declares draw' do
+              expect { chessgame.play }
+                .to change { chessgame.draw_agreed }
+                .from(false)
+                .to(true)
+            end
+          end
+
+          context 'if opponent refuses' do
+            it 'continue playing' do
+              allow(chessgame).to receive(:gets)
+                .and_return('draw', 'refuse')
+
+              expect(black_player).to receive(:move!)
+
+              chessgame.play
+            end
+          end
         end
 
         context 'if white player is in turn' do
@@ -344,49 +418,6 @@ describe Game do
             .and change { chessgame.resign }
             .from(false)
             .to(true)
-        end
-      end
-
-      context 'when player proposes a draw' do
-        before do
-          allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
-
-          allow(player_in_turn).to receive(:gets)
-            .and_return(first_pawn.current_square, 'a3', 'resign')
-
-          allow(black_player).to receive(:gets)
-            .and_return(second_rook.current_square, 'h7')
-        end
-
-        context 'if opponents agrees' do
-          before do
-            allow(chessgame).to receive(:gets)
-              .and_return('draw', 'draw')
-          end
-
-          it 'ends the game' do
-            expect(black_player).not_to receive(:move!)
-
-            chessgame.play
-          end
-
-          it 'declares draw' do
-            expect { chessgame.play }
-              .to change { chessgame.draw_agreed }
-              .from(false)
-              .to(true)
-          end
-        end
-
-        context 'if opponent refuses' do
-          it 'continue playing' do
-            allow(chessgame).to receive(:gets)
-              .and_return('draw', 'refuse')
-
-            expect(black_player).to receive(:move!)
-
-            chessgame.play
-          end
         end
       end
     end

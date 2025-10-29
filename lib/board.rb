@@ -15,8 +15,8 @@ class Board
   def create_board
     board = {}
 
-    'a'.upto('h') do |column|
-      '1'.upto('8') do |row|
+    '1'.upto('8') do |row|
+      'a'.upto('h') do |column|
         board["#{column}#{row}"] = EMPTY_SQUARE
       end
     end
