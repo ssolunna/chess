@@ -283,6 +283,73 @@ describe Game do
           chessgame.play
         end
 
+        context 'keeps track of movements clocks' do
+          it 'increments fullmove number by one when black moves' do
+            allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+
+            allow(white_player).to receive(:gets)
+              .and_return(first_pawn.current_square, 'a3', 'resign')
+
+            allow(black_player).to receive(:gets)
+              .and_return(second_rook.current_square, 'h7')
+
+            expect { chessgame.play }
+              .to change { chessgame.fullmove_number }
+              .from(1)
+              .to(2)
+          end
+
+          it 'increments halfmove clock by one if player does not capture nor advance pawn' do
+            allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+
+            allow(white_player).to receive(:gets)
+              .and_return(rook.current_square, 'h2', 'resign')
+
+            allow(black_player).to receive(:gets)
+              .and_return(second_rook.current_square, 'h7')
+
+            expect { chessgame.play }
+              .to change { chessgame.halfmove_clock }
+              .from(0)
+              .to(2)
+          end
+
+          it 'restarts halfmove clock to 0 if player advances a pawn' do
+            third_pawn = Pawn.new('black', 'a7', black_player)
+
+            allow(third_pawn).to receive(:screen_legal_moves) { %w[a6] }
+            allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+
+            allow(white_player).to receive(:gets)
+              .and_return(rook.current_square, 'h2', 'resign')
+
+            allow(black_player).to receive(:gets)
+              .and_return(third_pawn.current_square, 'a6')
+
+            chessgame.play
+
+            halfmove_clock = chessgame.instance_variable_get(:@halfmove_clock)
+
+            expect(halfmove_clock).to eq(0)
+          end
+
+          it 'restarts halfmove clock to 0 if player captures' do
+            allow(second_rook).to receive(:screen_legal_moves) { %w[h2] }
+
+            allow(white_player).to receive(:gets)
+              .and_return(rook.current_square, 'h2', 'resign')
+
+            allow(black_player).to receive(:gets)
+              .and_return(second_rook.current_square, 'h2')
+
+            chessgame.play
+
+            halfmove_clock = chessgame.instance_variable_get(:@halfmove_clock)
+
+            expect(halfmove_clock).to eq(0)
+          end
+        end
+
         it 'saves a FEN record of the move in a log variable' do
           allow(chessgame).to receive(:set_pieces).and_call_original
 
