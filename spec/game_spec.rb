@@ -299,7 +299,8 @@ describe Game do
               .to(2)
           end
 
-          it 'increments halfmove clock by one if player does not capture nor advance pawn' do
+          it 'increments halfmove clock by one if player
+            does not capture or advance pawn' do
             allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
 
             allow(white_player).to receive(:gets)
@@ -569,6 +570,29 @@ describe Game do
               .to(true)
           end
         end
+      end
+    end
+
+    context 'when halfmove clock reaches 100 (50 consecutive moves rule happens)' do
+      before do
+        allow(chessgame).to receive(:set_pieces)
+        allow(chessgame).to receive(:set_up_pieces_movements)
+      end
+
+      it 'ends the game' do
+        chessgame.instance_variable_set(:@halfmove_clock, 98)
+
+        allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
+
+        allow(white_player).to receive(:gets)
+          .and_return(rook.current_square, 'h2')
+
+        allow(black_player).to receive(:gets)
+          .and_return(second_rook.current_square, 'h7')
+
+        expect(white_player).to receive(:move!).once.and_call_original
+
+        chessgame.play
       end
     end
   end

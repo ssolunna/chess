@@ -51,7 +51,7 @@ class Game
   def player_turns
     load_game if File.exist?(FILENAME)
 
-    loop do
+    until halfmove_clock == 100
       moveable_pieces = search_moveable_pieces
 
       return set_winner if moveable_pieces.none?
@@ -62,16 +62,22 @@ class Game
 
       move_to_square = select_square_to_move(choice)
 
-      piece_at_moved_square = board.chessboard[move_to_square]
-
-      player_in_turn.move!(choice, move_to_square)
-
-      save_fen_record(choice, piece_at_moved_square)
+      place_movement(choice, move_to_square)
 
       return if draw_proposal && draw_agreed
 
       switch_player_turn
     end
+
+    end_game('draw')
+  end
+
+  def place_movement(chosen_piece, move_to_square)
+    piece_at_moved_square = board.chessboard[move_to_square]
+
+    player_in_turn.move!(chosen_piece, move_to_square)
+
+    save_fen_record(chosen_piece, piece_at_moved_square)
   end
 
   def save_fen_record(chosen_piece, piece_at_moved_square)
@@ -108,6 +114,7 @@ class Game
     case choice
     when 'save' then save_game
     when 'resign' then resign_game
+    when 'draw' then draw_game
     end
   end
 
@@ -211,6 +218,10 @@ class Game
     @resign = true
 
     set_winner
+  end
+
+  def draw_game
+    @halfmove_clock == 100 ? 'Draw by 50 moves rule' : 'Draw by repetition of moves rule'
   end
 
   def select_opponent
