@@ -42,7 +42,7 @@ class Game
   def play
     set_up_pieces_movements
     set_pieces unless File.exist?(FILENAME)
-    @fen_log << record_fen(board.chessboard)
+    save_fen_record unless File.exist?(FILENAME)
     player_turns
   end
 
@@ -51,7 +51,7 @@ class Game
   def player_turns
     load_game if File.exist?(FILENAME)
 
-    until halfmove_clock == 100
+    until halfmove_clock == 100 || threefold_repetition?
       moveable_pieces = search_moveable_pieces
 
       return set_winner if moveable_pieces.none?
@@ -80,7 +80,7 @@ class Game
     save_fen_record(chosen_piece, piece_at_moved_square)
   end
 
-  def save_fen_record(chosen_piece, piece_at_moved_square)
+  def save_fen_record(chosen_piece = nil, piece_at_moved_square = nil)
     update_halfmove_clock(chosen_piece, piece_at_moved_square)
 
     @fullmove_number += 1 if @player_in_turn == @black_player
@@ -89,6 +89,8 @@ class Game
   end
 
   def update_halfmove_clock(chosen_piece, piece_at_moved_square)
+    return if chosen_piece.nil? || piece_at_moved_square.nil?
+
     if chosen_piece.is_a?(Pawn) || piece_at_moved_square.is_a?(Piece)
       @halfmove_clock = 0
 
@@ -96,6 +98,42 @@ class Game
     end
 
     @halfmove_clock += 1
+  end
+
+  def threefold_repetition?
+    move_records = fen_log.dup.reverse
+
+    i = 0
+    move = trim_clocks(move_records[i])
+    previous_same_move = trim_clocks(move_records[i + 4])
+
+    count = 1
+    while move == previous_same_move
+      i += 4
+      count += 1
+
+      return true if count == 3
+
+      move = previous_same_move
+      previous_same_move = trim_clocks(move_records[i + 4])
+    end
+
+    false
+  end
+
+  def trim_clocks(fen_record)
+    return if fen_record.nil?
+
+    record_reversed = fen_record.reverse
+
+    record_reversed.each_char do |c|
+      next unless c.match?(/[a-z]|-/)
+
+      index = record_reversed.index(c) - 1
+
+      return record_reversed.reverse[0, record_reversed.size - index]
+      break
+    end
   end
 
   def draw_proposal
@@ -108,6 +146,20 @@ class Game
     return false unless opponent_player_input == 'draw'
 
     @draw_agreed = true
+  end
+
+  def save_game
+    File.open(FILENAME, 'w') do |file|
+      JSON.dump(serialize_game, file)
+    end
+  end
+
+  def load_game
+    saved_game = JSON.parse(File.read(FILENAME))
+
+    deserialize_game(saved_game)
+
+    File.delete(FILENAME)
   end
 
   def end_game(choice)
@@ -186,20 +238,6 @@ class Game
 
   def switch_player_turn
     @player_in_turn = select_opponent
-  end
-
-  def save_game
-    File.open(FILENAME, 'w') do |file|
-      JSON.dump(serialize_game, file)
-    end
-  end
-
-  def load_game
-    saved_game = JSON.parse(File.read(FILENAME))
-
-    deserialize_game(saved_game)
-
-    File.delete(FILENAME)
   end
 
   def set_winner

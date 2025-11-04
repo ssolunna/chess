@@ -579,7 +579,7 @@ describe Game do
         allow(chessgame).to receive(:set_up_pieces_movements)
       end
 
-      it 'ends the game' do
+      it 'automatically ends the game' do
         chessgame.instance_variable_set(:@halfmove_clock, 98)
 
         allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
@@ -591,6 +591,35 @@ describe Game do
           .and_return(second_rook.current_square, 'h7')
 
         expect(white_player).to receive(:move!).once.and_call_original
+
+        chessgame.play
+      end
+    end
+
+    context 'when a threefold repetition is reached (3 repeated moves rule happens)' do
+      before do
+        allow(chessgame).to receive(:set_pieces)
+        allow(chessgame).to receive(:set_up_pieces_movements)
+      end
+
+      it 'automatically ends the game' do
+        allow(chessgame).to receive(:save_fen_record)
+
+        fen_records = [
+          '1kr5/Bb3R2/4p3/4PN1p/R7/2P3p1/1KP4r/8 b - - 1 20',
+          'k1r5/Bb3R2/4p3/4PN1p/R7/2P3p1/1KP4r/8 w - - 2 21',
+          'k1r5/1b3R2/4p3/4PN1p/R7/2P3p1/1KP4r/6B1 b - - 3 21',
+          '1kr5/1b3R2/4p3/4PN1p/R7/2P3p1/1KP4r/6B1 w - - 4 22',
+          '1kr5/Bb3R2/4p3/4PN1p/R7/2P3p1/1KP4r/8 b - - 5 22',
+          'k1r5/Bb3R2/4p3/4PN1p/R7/2P3p1/1KP4r/8 w - - 6 23',
+          'k1r5/1b3R2/4p3/4PN1p/R7/2P3p1/1KP2B1r/8 b - - 7 23',
+          '1kr5/1b3R2/4p3/4PN1p/R7/2P3p1/1KP2B1r/8 w - - 8 24',
+          '1kr5/Bb3R2/4p3/4PN1p/R7/2P3p1/1KP4r/8 b - - 9 24'
+        ]
+
+        chessgame.instance_variable_set(:@fen_log, fen_records)
+
+        expect(white_player).not_to receive(:move!)
 
         chessgame.play
       end
