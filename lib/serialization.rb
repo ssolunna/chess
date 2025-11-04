@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Serialize chessboard
 module Serialize
   def serialize_game
     {
@@ -7,6 +8,7 @@ module Serialize
       white_player: serialize_player(white_player),
       black_player: serialize_player(black_player),
       player_in_turn: player_in_turn.color,
+      fen_log: fen_log,
       halfmove_clock: halfmove_clock,
       fullmove_number: fullmove_number
     }
@@ -34,7 +36,7 @@ module Serialize
 
   def serialize_player(player)
     {
-      pieces_moved_log: player.pieces_moved_log.map { |piece| serialize_piece(piece) }
+      last_touched_piece: serialize_piece(player.last_touched_piece)
     }
   end
 
@@ -45,6 +47,8 @@ module Serialize
 
     player = data['player_in_turn'] == 'white' ? white_player : black_player
     instance_variable_set(:@player_in_turn, player)
+
+    instance_variable_set(:@fen_log, data['fen_log'])
 
     instance_variable_set(:@halfmove_clock, data['halfmove_clock'])
     instance_variable_set(:@fullmove_number, data['fullmove_number'])
@@ -69,17 +73,12 @@ module Serialize
   end
 
   def deserialize_player(player, data)
-    data['pieces_moved_log'].each do |data_piece_moved|
-      active_piece = player.pieces.select do |piece|
-        piece.moves_log == data_piece_moved['moves_log']
-      end[0]
+    data_piece_moved = data['last_touched_piece']
 
-      player.pieces_moved_log <<
-        if active_piece.nil?
-          deserialize_piece(data_piece_moved)
-        else
-          active_piece
-        end
-    end
+    last_piece = player.pieces.select do |piece|
+      piece.moves_log == data_piece_moved['moves_log']
+    end[0]
+
+    player.instance_variable_set(:@last_touched_piece, last_piece)
   end
 end

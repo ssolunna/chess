@@ -9,13 +9,13 @@ class Player
 
   EMPTY_SQUARE = ' '
 
-  attr_reader :color, :board, :pieces, :pieces_moved_log
+  attr_reader :color, :board, :pieces, :last_touched_piece
 
   def initialize(color, board)
     @color = color
     @board = board
     @pieces = []
-    @pieces_moved_log = []
+    @last_touched_piece = nil
   end
 
   def player_input(*args)
@@ -44,7 +44,7 @@ class Player
   end
 
   def last_touched_piece?(piece)
-    pieces_moved_log.last == piece
+    last_touched_piece == piece
   end
 
   private
@@ -159,7 +159,7 @@ class Player
   def log_moves(touched_piece, to_square)
     touched_piece.moves_log << to_square
 
-    pieces_moved_log << touched_piece
+    @last_touched_piece = touched_piece
   end
 
   def empty_square?(square, board)

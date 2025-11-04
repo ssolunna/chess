@@ -41,8 +41,8 @@ describe Player do
 
       it 'add piece to player pieces moved log' do
         expect { player.move!(piece, next_square, board.chessboard) }
-          .to change { player.pieces_moved_log }
-          .to(include(piece))
+          .to change { player.last_touched_piece }
+          .to(piece)
       end
 
       it 'add next square to piece moves log' do

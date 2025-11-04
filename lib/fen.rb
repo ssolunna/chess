@@ -145,7 +145,7 @@ module FEN
 
   def double_stepped?(pawn)
     return false unless pawn.is_a?(Pawn)
-    return false unless pawn.player.last_touched_piece?(pawn)
+    return false unless pawn.player.last_touched_piece == pawn
 
     pawn.moves_log.size == 2 &&
       pawn.current_square.match?(en_passant_pattern(pawn.color))
