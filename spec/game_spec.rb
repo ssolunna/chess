@@ -19,6 +19,7 @@ describe Game do
   let(:second_rook) { Rook.new('black', 'h8', black_player) }
 
   before do
+    allow(board).to receive(:display)
     allow(chessgame).to receive(:gets) { '' }
     allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
     allow(second_pawn).to receive(:screen_legal_moves) { [] }
@@ -236,6 +237,8 @@ describe Game do
       end
 
       it 'loads saved game with same variables' do
+        allow(resumed_game.board).to receive(:display)
+
         allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
         allow(resumed_game).to receive(:search_moveable_pieces).and_return([])
 

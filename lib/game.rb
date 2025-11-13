@@ -43,6 +43,7 @@ class Game
     set_up_pieces_movements
     set_pieces unless File.exist?(FILENAME)
     save_fen_record unless File.exist?(FILENAME)
+    board.display
     player_turns
   end
 
@@ -78,6 +79,8 @@ class Game
     player_in_turn.move!(chosen_piece, move_to_square)
 
     save_fen_record(chosen_piece, piece_at_moved_square)
+
+    board.display
   end
 
   def save_fen_record(chosen_piece = nil, piece_at_moved_square = nil)
