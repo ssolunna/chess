@@ -19,7 +19,10 @@ describe Game do
   let(:second_rook) { Rook.new('black', 'h8', black_player) }
 
   before do
+    allow(chessgame).to receive(:puts)
+    allow(chessgame).to receive(:print)
     allow(board).to receive(:display)
+
     allow(chessgame).to receive(:gets) { '' }
     allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
     allow(second_pawn).to receive(:screen_legal_moves) { [] }

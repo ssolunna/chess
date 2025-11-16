@@ -4,6 +4,7 @@ require_relative '../lib/serialization'
 require_relative '../lib/fen'
 require_relative '../lib/board'
 require_relative '../lib/player'
+require_relative '../lib/display'
 require_relative './pieces/king'
 require_relative './pieces/queen'
 require_relative './pieces/rook'
@@ -15,6 +16,7 @@ require 'json'
 
 # Chess Game
 class Game
+  include Display
   include Serialize
   include FEN
 
@@ -43,7 +45,6 @@ class Game
     set_up_pieces_movements
     set_pieces unless File.exist?(FILENAME)
     save_fen_record unless File.exist?(FILENAME)
-    board.display
     player_turns
   end
 
@@ -53,6 +54,8 @@ class Game
     load_game if File.exist?(FILENAME)
 
     until halfmove_clock == 100 || threefold_repetition?
+      board.display
+
       moveable_pieces = search_moveable_pieces
 
       return set_winner if moveable_pieces.none?
@@ -73,6 +76,46 @@ class Game
     end_game('draw')
   end
 
+  def search_moveable_pieces
+    moveable_pieces = []
+
+    player_in_turn.pieces.each do |piece|
+      legal_moves = piece.search_legal_moves(board.chessboard)
+
+      piece.legal_moves = piece.screen_legal_moves(legal_moves, board.chessboard)
+
+      moveable_pieces << piece if piece.legal_moves.any?
+    end
+
+    moveable_pieces
+  end
+
+  def select_piece_to_move(moveable_pieces)
+    pieces_square = moveable_pieces.map(&:current_square)
+
+    display_prompt_piece(player_in_turn.color)
+
+    choice = player_in_turn.player_input(pieces_square, default_options)
+
+    return choice if default_options.include?(choice)
+
+    touched_piece = moveable_pieces.select { |piece| piece.current_square == choice }[0]
+
+    touched_piece.touched = true
+
+    touched_piece
+  end
+
+  def select_square_to_move(piece)
+    board.display
+
+    display_prompt_move(player_in_turn.color, piece)
+
+    piece.touched = false
+
+    player_in_turn.player_input(piece.legal_moves)
+  end
+
   def place_movement(chosen_piece, move_to_square)
     piece_at_moved_square = board.chessboard[move_to_square]
 
@@ -89,6 +132,23 @@ class Game
     @fullmove_number += 1 if @player_in_turn == @black_player
 
     @fen_log << record_fen(board.chessboard, chosen_piece)
+  end
+
+  def draw_proposal
+    puts "          \e[93;1m\u276A Draw proposal \u276B\e[0m"
+    print "\e[1m[#{player_in_turn.color.capitalize}]\e[0m "
+    print 'Want to propose a draw? [y|n]: '
+    player_in_turn_input = gets.chomp.downcase
+
+    return false unless player_in_turn_input.match?(/^(y|draw|yes)$/)
+
+    print "\e[1m[#{select_opponent.color.capitalize}]\e[0m "
+    print 'Accept draw proposal? [y|n]: '
+    opponent_player_input = gets.chomp.downcase
+
+    return false unless opponent_player_input.match?(/^(y|draw|yes)$/)
+
+    @draw_agreed = true
   end
 
   def update_halfmove_clock(chosen_piece, piece_at_moved_square)
@@ -137,18 +197,6 @@ class Game
       return record_reversed.reverse[0, record_reversed.size - index]
       break
     end
-  end
-
-  def draw_proposal
-    player_in_turn_input = gets.chomp.downcase
-
-    return false unless player_in_turn_input == 'draw'
-
-    opponent_player_input = gets.chomp.downcase
-
-    return false unless opponent_player_input == 'draw'
-
-    @draw_agreed = true
   end
 
   def save_game
@@ -209,34 +257,6 @@ class Game
     BishopMovement.set_up
     QueenMovement.set_up
     KingMovement.set_up
-  end
-
-  def search_moveable_pieces
-    moveable_pieces = []
-
-    player_in_turn.pieces.each do |piece|
-      legal_moves = piece.search_legal_moves(board.chessboard)
-
-      piece.legal_moves = piece.screen_legal_moves(legal_moves, board.chessboard)
-
-      moveable_pieces << piece if piece.legal_moves.any?
-    end
-
-    moveable_pieces
-  end
-
-  def select_piece_to_move(moveable_pieces)
-    pieces_square = moveable_pieces.map(&:current_square)
-
-    choice = player_in_turn.player_input(pieces_square, default_options)
-
-    return choice if default_options.include?(choice)
-
-    moveable_pieces.select { |piece| piece.current_square == choice }[0]
-  end
-
-  def select_square_to_move(piece)
-    player_in_turn.player_input(piece.legal_moves)
   end
 
   def switch_player_turn

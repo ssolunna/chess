@@ -6,7 +6,7 @@ class Piece
 
   attr_reader :color, :moves, :moves_log, :player
 
-  attr_accessor :current_square, :legal_moves
+  attr_accessor :current_square, :legal_moves, :touched
 
   def initialize(color, square, player = nil)
     player.pieces << self unless player.nil?
@@ -16,6 +16,7 @@ class Piece
     @legal_moves = nil
     @moves_log = [current_square]
     @player = player
+    @touched = false
   end
 
   # Select legal moves that do not put King in check after

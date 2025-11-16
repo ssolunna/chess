@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require_relative './movements/chessboard_directions'
+require_relative '../lib/display'
 require_relative '../lib/game'
 
 # Player of Chess
 class Player
+  include Display
   include Directions
 
   EMPTY_SQUARE = ' '
@@ -25,6 +27,8 @@ class Player
       user_input = gets.chomp.downcase
 
       return user_input if options.include?(user_input)
+
+      display_invalid_input(options)
     end
   end
 

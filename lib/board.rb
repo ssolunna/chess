@@ -11,6 +11,7 @@ class Board
   end
 
   def display
+    printf "\033[H\033[2J" # Clears screen
     puts <<-HEREDOC
 
         a  b  c  d  e  f  g  h
@@ -30,15 +31,32 @@ class Board
   end
 
   private
-  
+
+  def create_board
+    board = {}
+
+    '1'.upto('8') do |row|
+      'a'.upto('h') do |column|
+        board["#{column}#{row}"] = EMPTY_SQUARE
+      end
+    end
+
+    board
+  end
+
   def square(column_row)
-    piece = get_token(chessboard[column_row])
+    piece = chessboard[column_row]
+    piece_token = get_token(piece)
+
+    if touched_piece?(piece)
+      piece_token = blink(piece_token)
+    end
 
     case column_row
-    in /^[aceg][1357]$/ then brown_bg(piece)
-    in /^[aceg][2468]$/ then beige_bg(piece)
-    in /^[bdfh][1357]$/ then beige_bg(piece)
-    in /^[bdfh][2468]$/ then brown_bg(piece)
+    in /^[aceg][1357]$/ then brown_bg(piece_token)
+    in /^[aceg][2468]$/ then beige_bg(piece_token)
+    in /^[bdfh][1357]$/ then beige_bg(piece_token)
+    in /^[bdfh][2468]$/ then brown_bg(piece_token)
     end
   end
 
@@ -66,15 +84,13 @@ class Board
     "\e[48;5;179m #{piece} \e[0m"
   end
 
-  def create_board
-    board = {}
+  def blink(piece_token)
+    "\e[5m#{piece_token}"
+  end
 
-    '1'.upto('8') do |row|
-      'a'.upto('h') do |column|
-        board["#{column}#{row}"] = EMPTY_SQUARE
-      end
-    end
+  def touched_piece?(piece)
+    return unless piece.is_a?(Piece)
 
-    board
+    piece.touched
   end
 end
