@@ -231,8 +231,11 @@ describe Game do
       end
 
       it 'does not set new pieces' do
+        allow(chessgame).to receive(:load_game)
         allow(chessgame).to receive(:player_turns)
+
         allow(File).to receive(:exist?).with(filename) { true }
+        allow(chessgame).to receive(:load_saved_game?) { true }
 
         expect(chessgame).not_to receive(:set_pieces)
 
@@ -240,6 +243,8 @@ describe Game do
       end
 
       it 'loads saved game with same variables' do
+        allow(resumed_game).to receive(:puts)
+        allow(resumed_game).to receive(:print)
         allow(resumed_game.board).to receive(:display)
 
         allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
@@ -252,6 +257,9 @@ describe Game do
           .and_return(second_rook.current_square, 'h7')
 
         chessgame.play
+
+        allow(resumed_game).to receive(:load_saved_game?) { true }
+        expect(resumed_game).to receive(:load_game).and_call_original
 
         resumed_game.play
 

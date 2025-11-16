@@ -43,16 +43,20 @@ class Game
 
   def play
     set_up_pieces_movements
-    set_pieces unless File.exist?(FILENAME)
-    save_fen_record unless File.exist?(FILENAME)
+
+    if File.exist?(FILENAME) && load_saved_game?
+      load_game
+    else
+      set_pieces
+      save_fen_record
+    end
+
     player_turns
   end
 
   private
 
   def player_turns
-    load_game if File.exist?(FILENAME)
-
     until halfmove_clock == 100 || threefold_repetition?
       board.display
 
@@ -203,6 +207,9 @@ class Game
     File.open(FILENAME, 'w') do |file|
       JSON.dump(serialize_game, file)
     end
+
+    puts
+    puts 'Game saved.', 'Exiting...'
   end
 
   def load_game
@@ -210,7 +217,17 @@ class Game
 
     deserialize_game(saved_game)
 
+    puts 'Game loaded.', 'Deleting saved game...'
+
     File.delete(FILENAME)
+  end
+
+  def load_saved_game?
+    print 'Saved game found. Do you want to load it? [y|n]: '
+    response = gets.chomp.downcase
+    puts
+
+    response.match?(/^(y|yes)$/)
   end
 
   def end_game(choice)
