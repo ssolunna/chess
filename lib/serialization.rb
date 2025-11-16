@@ -25,12 +25,15 @@ module Serialize
   end
 
   def serialize_piece(piece)
+    return if piece.nil?
+
     {
       name: piece.class.to_s,
       color: piece.color,
       current_square: piece.current_square,
       legal_moves: piece.legal_moves,
-      moves_log: piece.moves_log
+      moves_log: piece.moves_log,
+      touched: piece.touched
     }
   end
 
@@ -64,6 +67,7 @@ module Serialize
   def deserialize_piece(data)
     piece = create_piece(data['name'], data['color'], data['current_square'])
 
+    piece.touched = data['touched']
     piece.legal_moves = data['legal_moves']
 
     piece.moves_log.shift
@@ -75,9 +79,13 @@ module Serialize
   def deserialize_player(player, data)
     data_piece_moved = data['last_touched_piece']
 
-    last_piece = player.pieces.select do |piece|
-      piece.moves_log == data_piece_moved['moves_log']
-    end[0]
+    last_piece = if data_piece_moved.nil?
+                   nil
+                 else
+                   player.pieces.select do |piece|
+                     piece.moves_log == data_piece_moved['moves_log']
+                   end[0]
+                 end
 
     player.instance_variable_set(:@last_touched_piece, last_piece)
   end
