@@ -125,9 +125,33 @@ class Game
 
     player_in_turn.move!(chosen_piece, move_to_square)
 
+    remove_player_piece(piece_at_moved_square) if piece_at_moved_square.is_a?(Piece)
+
+    promote(chosen_piece) if promoteable?(chosen_piece)
+
     save_fen_record(chosen_piece, piece_at_moved_square)
 
     board.display
+  end
+
+  def promoteable?(pawn)
+    return unless pawn.is_a?(Pawn)
+
+    last_row_pattern = { 'white' => /^[a-h]8$/, 'black' => /^[a-h]1$/ }
+
+    pawn.current_square.match?(last_row_pattern[pawn.color])
+  end
+
+  def promote(pawn)
+    pieces_options = %w[queen rook bishop knight]
+
+    chosen_piece = player_in_turn.player_input(pieces_options)
+
+    new_piece = create_piece(chosen_piece.capitalize, pawn.color, pawn.current_square)
+
+    remove_player_piece(pawn)
+
+    board.chessboard[pawn.current_square] = new_piece
   end
 
   def save_fen_record(chosen_piece = nil, piece_at_moved_square = nil)
@@ -314,5 +338,9 @@ class Game
     player = color == 'white' ? @white_player : @black_player
 
     Object.const_get(piece).new(color, square, player)
+  end
+
+  def remove_player_piece(piece)
+    piece.player.pieces.delete(piece)
   end
 end

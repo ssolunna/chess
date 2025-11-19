@@ -245,10 +245,6 @@ describe Bishop do
 
   let(:player) { Player.new('color', {}) }
 
-  before do
-    allow(player).to receive(:remove_piece)
-  end
-
   context 'with white bishops' do
     it_behaves_like 'a bishop' do
       let(:color) { 'white' }

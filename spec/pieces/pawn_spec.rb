@@ -817,10 +817,6 @@ describe Pawn do
     let!(:setup) { PawnMovement.set_up }
     let!(:player) { Player.new('color', {}) }
 
-    before do
-      allow(player).to receive(:remove_piece)
-    end
-
     context 'with white pawns' do
       let(:color) { 'white' }
       let(:opponent_color) { 'black' }

@@ -67,13 +67,6 @@ describe Player do
             .from(include(next_square => opponent_piece))
             .to(hash_not_including(have_value(opponent_piece)))
         end
-
-        it 'removes the piece from the opponent pieces array' do
-          expect { player.move!(piece, next_square, board.chessboard) }
-            .to change { opponent_player.pieces }
-            .from(include(opponent_piece))
-            .to([])
-        end
       end
     end
 
@@ -328,95 +321,6 @@ describe Player do
               .to change { board.chessboard }
               .from(include(second_rook_at_square => second_rook))
               .to(include(second_rook_at_square => empty_square))
-          end
-        end
-      end
-    end
-
-    context 'when pawn has the option to promote' do
-      pawn_no_last_rows = { 'white' => %w[a1 b2 c3 d4 e5 f6 g7 h7],
-                            'black' => %w[a8 b7 c6 d5 e4 f3 g2 h2] }
-
-      pawn_last_rows = { 'white' => %w[a8 b8 c8 d8 e8 f8 g8 h8],
-                         'black' => %w[a1 b1 c1 d1 e1 f1 g1 h1] }
-
-      before do
-        allow(pawn).to receive(:is_a?).with(Pawn) { true }
-        allow(pawn).to receive(:player) { player }
-        allow(pawn).to receive(:current_square=)
-        allow(player).to receive(:pieces).and_return([pawn])
-        allow(player).to receive(:taking_en_passant?)
-        allow(player).to receive(:castling?)
-      end
-
-      %w[white black].each do |color|
-        context "when #{color} pawn does not reach the last row" do
-          pawn_no_last_rows[color].each do |no_last_row|
-            context "when #{color} pawn moves to #{no_last_row} row" do
-              let(:pawn) do
-                double('Pawn', color: color,
-                               current_square: no_last_row,
-                               moves_log: [no_last_row])
-              end
-
-              let(:board) { double('Board', chessboard: { no_last_row => pawn }) }
-
-              subject(:player) { described_class.new(color, board) }
-
-              it 'does not ask user for input about piece to promote pawn to' do
-                expect(player).not_to receive(:gets).with(%w[queen rook knight bishop])
-
-                player.move!(pawn, no_last_row)
-              end
-            end
-          end
-        end
-
-        pawn_last_rows[color].each do |last_row|
-          context "when #{color} pawn reaches the last row at #{last_row}" do
-            let(:pawn) do
-              double('Pawn', color: color,
-                             current_square: last_row,
-                             moves_log: [last_row])
-            end
-
-            let(:board) { double('Board', chessboard: { last_row => pawn }) }
-
-            subject(:player) { described_class.new(color, board) }
-
-            it 'asks user for input about piece to promote pawn to' do
-              expect(player).to receive(:gets).and_return('queen')
-
-              player.move!(pawn, last_row)
-            end
-
-            %w[Queen Rook Knight Bishop].each do |chosen_piece|
-              context "if user chooses to promote the pawn to a #{chosen_piece}" do
-                before do
-                  allow(player).to receive(:gets).and_return(chosen_piece)
-                end
-
-                it "places new #{chosen_piece} piece to #{last_row} on chessboard" do
-                  expect { player.move!(pawn, last_row) }
-                    .to change { player.board.chessboard }
-                    .from(include(last_row => pawn))
-                    .to(include(last_row => be_an(Object.const_get(chosen_piece))))
-                end
-
-                it 'removes pawn from the board' do
-                  expect { player.move!(pawn, last_row) }
-                    .to change { player.board.chessboard }
-                    .to(hash_excluding(a_value(pawn)))
-                end
-
-                it 'removes pawn from array of pieces' do
-                  expect { player.move!(pawn, last_row) }
-                    .to change { player.pieces }
-                    .from(include(pawn))
-                    .to([be_a(Object.const_get(chosen_piece))])
-                end
-              end
-            end
           end
         end
       end

@@ -250,10 +250,6 @@ describe Queen do
 
   let(:player) { Player.new('color', {}) }
 
-  before do
-    allow(player).to receive(:remove_piece)
-  end
-
   context 'with white queens' do
     it_behaves_like 'a queen' do
       let(:color) { 'white' }

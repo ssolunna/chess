@@ -272,10 +272,6 @@ describe Rook do
 
   let(:player) { Player.new('color', {}) }
 
-  before do
-    allow(player).to receive(:remove_piece)
-  end
-
   context 'with white rooks' do
     it_behaves_like 'a rook' do
       let(:color) { 'white' }

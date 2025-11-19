@@ -25,8 +25,8 @@ class Piece
     moves_to_remove = []
 
     legal_moves.each do |next_move|
-      copied_board = board.dup
-      copied_piece = dup
+      copied_board = board.clone
+      copied_piece = clone
 
       copied_piece.player.move!(copied_piece, next_move, copied_board)
 

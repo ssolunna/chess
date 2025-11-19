@@ -36,15 +36,11 @@ class Player
     take_en_passant(touched_piece, to_square, board) if taking_en_passant?(touched_piece, to_square, board)
     castling_move_rook(touched_piece, to_square, board) if castling?(touched_piece, to_square)
 
-    remove_piece(board[to_square]) unless empty_square?(to_square, board)
-
     board[to_square] = touched_piece
     board[touched_piece.current_square] = EMPTY_SQUARE
     touched_piece.current_square = to_square
 
     log_moves(touched_piece, to_square)
-
-    promote(touched_piece) if promoteable?(touched_piece)
   end
 
   def last_touched_piece?(piece)
@@ -52,25 +48,6 @@ class Player
   end
 
   private
-
-  def promote(pawn)
-    pieces_options = %w[queen rook bishop knight]
-
-    chosen_piece = player_input(pieces_options)
-
-    new_piece = create_piece(chosen_piece.capitalize, pawn.current_square)
-
-    remove_piece(pawn)
-    board.chessboard[pawn.current_square] = new_piece
-  end
-
-  def promoteable?(pawn)
-    return unless pawn.is_a?(Pawn)
-
-    last_row_pattern = { 'white' => /^[a-h]8$/, 'black' => /^[a-h]1$/ }
-
-    pawn.current_square.match?(last_row_pattern[pawn.color])
-  end
 
   def take_en_passant(pawn, to_square, board)
     direction = { 'white' => method(:downward), 'black' => method(:upward) }
@@ -84,8 +61,9 @@ class Player
 
   def taking_en_passant?(pawn, to_square, board)
     return unless pawn.is_a?(Pawn)
+    return if board[to_square].is_a?(Piece)
 
-    empty_square?(to_square, board) && diagonal_move?(pawn, to_square)
+    diagonal_move?(pawn, to_square)
   end
 
   def diagonal_move?(pawn, to_square)
@@ -152,21 +130,9 @@ class Player
     end
   end
 
-  def create_piece(piece, square)
-    Object.const_get(piece).new(color, square, self)
-  end
-
-  def remove_piece(piece)
-    piece.player.pieces.delete(piece)
-  end
-
   def log_moves(touched_piece, to_square)
     touched_piece.moves_log << to_square
 
     @last_touched_piece = touched_piece
-  end
-
-  def empty_square?(square, board)
-    board[square] == EMPTY_SQUARE
   end
 end

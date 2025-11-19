@@ -850,10 +850,6 @@ describe King do
 
   let(:player) { Player.new('color', {}) }
 
-  before do
-    allow(player).to receive(:remove_piece)
-  end
-
   context 'with white kings' do
     it_behaves_like 'a king' do
       let(:color) { 'white' }

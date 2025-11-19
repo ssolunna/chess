@@ -249,10 +249,6 @@ describe Knight do
 
   let(:player) { Player.new('color', {}) }
 
-  before do
-    allow(player).to receive(:remove_piece)
-  end
-
   context 'with white knights' do
     it_behaves_like 'a knight' do
       let(:color) { 'white' }

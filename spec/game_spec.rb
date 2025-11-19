@@ -15,7 +15,7 @@ describe Game do
 
   let(:first_pawn) { Pawn.new(player_in_turn.color, 'a2', player_in_turn) }
   let(:second_pawn) { Pawn.new(player_in_turn.color, 'd2', player_in_turn) }
-  let(:rook) { Rook.new(player_in_turn.color, 'h1', player_in_turn) }
+  let(:first_rook) { Rook.new(player_in_turn.color, 'h1', player_in_turn) }
   let(:second_rook) { Rook.new('black', 'h8', black_player) }
 
   before do
@@ -26,7 +26,7 @@ describe Game do
     allow(chessgame).to receive(:gets) { '' }
     allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
     allow(second_pawn).to receive(:screen_legal_moves) { [] }
-    allow(rook).to receive(:screen_legal_moves) { ['h2'] }
+    allow(first_rook).to receive(:screen_legal_moves) { ['h2'] }
   end
 
   describe '#play' do
@@ -225,7 +225,7 @@ describe Game do
 
         board.chessboard[first_pawn.current_square] = first_pawn
         board.chessboard[second_pawn.current_square] = second_pawn
-        board.chessboard[rook.current_square] = rook
+        board.chessboard[first_rook.current_square] = first_rook
 
         board.chessboard[second_rook.current_square] = second_rook
       end
@@ -275,7 +275,7 @@ describe Game do
 
       it 'prompts player to choose piece and square to move from legal moves' do
         expect(player_in_turn).to receive(:player_input)
-          .with([first_pawn.current_square, rook.current_square], any_args)
+          .with([first_pawn.current_square, first_rook.current_square], any_args)
           .and_return(first_pawn.current_square)
 
         expect(player_in_turn).to receive(:player_input)
@@ -286,7 +286,7 @@ describe Game do
 
       context 'when player choose a piece to move' do
         it 'moves chosen piece to chosen square' do
-          chosen_piece = rook
+          chosen_piece = first_rook
           chosen_square = 'h2'
 
           allow(player_in_turn).to receive(:gets)
@@ -295,6 +295,23 @@ describe Game do
           expect(player_in_turn).to receive(:move!).with(chosen_piece, chosen_square)
 
           chessgame.play
+        end
+
+        context 'if there is an opponent piece at the square to move' do
+          it 'removes the piece from player array of pieces' do
+            board.chessboard[first_rook.current_square] = first_rook
+            board.chessboard[second_rook.current_square] = second_rook
+
+            allow(first_rook).to receive(:screen_legal_moves) { [second_rook.current_square] }
+
+            allow(white_player).to receive(:gets)
+              .and_return(first_rook.current_square, second_rook.current_square)
+
+            expect { chessgame.play }
+              .to change { black_player.pieces }
+              .from(include(second_rook))
+              .to([])
+          end
         end
 
         context 'keeps track of movements clocks' do
@@ -318,7 +335,7 @@ describe Game do
             allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
 
             allow(white_player).to receive(:gets)
-              .and_return(rook.current_square, 'h2', 'resign')
+              .and_return(first_rook.current_square, 'h2', 'resign')
 
             allow(black_player).to receive(:gets)
               .and_return(second_rook.current_square, 'h7')
@@ -336,7 +353,7 @@ describe Game do
             allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
 
             allow(white_player).to receive(:gets)
-              .and_return(rook.current_square, 'h2', 'resign')
+              .and_return(first_rook.current_square, 'h2', 'resign')
 
             allow(black_player).to receive(:gets)
               .and_return(third_pawn.current_square, 'a6')
@@ -352,7 +369,7 @@ describe Game do
             allow(second_rook).to receive(:screen_legal_moves) { %w[h2] }
 
             allow(white_player).to receive(:gets)
-              .and_return(rook.current_square, 'h2', 'resign')
+              .and_return(first_rook.current_square, 'h2', 'resign')
 
             allow(black_player).to receive(:gets)
               .and_return(second_rook.current_square, 'h2')
@@ -502,6 +519,89 @@ describe Game do
             .to(true)
         end
       end
+
+      context 'when pawn has the option to promote' do
+        pawn_no_last_rows = { 'white' => %w[a1 b2 c3 d4 e5 f6 g7 h7],
+                              'black' => %w[a8 b7 c6 d5 e4 f3 g2 h2] }
+
+        pawn_last_rows = { 'white' => %w[a8 b8 c8 d8 e8 f8 g8 h8],
+                           'black' => %w[a1 b1 c1 d1 e1 f1 g1 h1] }
+
+        context "when white pawn does not reach the last row" do
+          pawn_no_last_rows['white'].each do |no_last_row|
+            context "when white pawn moves to #{no_last_row} row" do
+
+              it 'does not ask user for input about piece to promote pawn' do
+                board.chessboard[first_pawn.current_square] = first_pawn
+
+                allow(white_player).to receive(:player_input).and_call_original
+
+                allow(first_pawn).to receive(:screen_legal_moves) { [no_last_row] }
+
+                allow(white_player).to receive(:gets)
+                  .and_return(first_pawn.current_square, no_last_row)
+
+                expect(white_player).not_to receive(:player_input)
+                  .with(%w[queen rook bishop knight])
+
+                chessgame.play
+              end
+            end
+          end
+        end
+
+        context "when white pawn reaches the last row at a8" do
+          let(:last_row) { 'a8' }
+
+          before do
+            board.chessboard[first_pawn.current_square] = first_pawn
+
+            allow(first_pawn).to receive(:screen_legal_moves) { [last_row] }
+
+            allow(white_player).to receive(:player_input).and_call_original
+          end
+
+          it 'asks user for input about piece to promote pawn' do
+            allow(white_player).to receive(:gets)
+              .and_return(first_pawn.current_square, last_row)
+
+            expect(white_player).to receive(:player_input)
+              .with(%w[queen rook bishop knight]).once
+              .and_return('queen')
+
+            chessgame.play
+          end
+
+          %w[Queen Rook Knight Bishop].each do |chosen_piece|
+            context "if user chooses to promote the pawn to a #{chosen_piece}" do
+              before do
+                allow(white_player).to receive(:gets)
+                  .and_return(first_pawn.current_square, last_row, chosen_piece)
+              end
+
+              it "places new #{chosen_piece} piece on last_row on chessboard" do
+                expect { chessgame.play }
+                  .to change { board.chessboard }
+                  .to(include(last_row => be_an(Object.const_get(chosen_piece))))
+              end
+
+              it 'removes pawn from the board' do
+                expect { chessgame.play }
+                  .to change { board.chessboard }
+                  .to(hash_excluding(a_value(first_pawn)))
+              end
+
+              it 'removes pawn from player array of pieces' do
+                chessgame.play
+
+                pieces = player_in_turn.pieces
+
+                expect(pieces).not_to include(first_pawn)
+              end
+            end
+          end
+        end
+      end
     end
 
     context 'if player in turn does not have moveable pieces' do
@@ -599,7 +699,7 @@ describe Game do
         allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
 
         allow(white_player).to receive(:gets)
-          .and_return(rook.current_square, 'h2')
+          .and_return(first_rook.current_square, 'h2')
 
         allow(black_player).to receive(:gets)
           .and_return(second_rook.current_square, 'h7')
