@@ -100,6 +100,8 @@ describe Player do
           allow(player).to receive(:castling?)
           allow(white_pawn).to receive(:current_square=).with(square_passed_over)
           allow(white_pawn).to receive(:is_a?).with(Pawn).and_return(true)
+          allow(black_pawn).to receive(:player)
+            .and_return(double(pieces: [black_pawn]))
         end
 
         it 'remove the double-stepping black pawn at h5 from the chessboard' do
@@ -130,7 +132,7 @@ describe Player do
         end
 
         let(:white_pawn) do
-          double('BlackPawn', color: 'white',
+          double('WhitePawn', color: 'white',
                               current_square: double_stepped_square,
                               moves_log: [white_initial_square, double_stepped_square])
         end
@@ -146,6 +148,8 @@ describe Player do
           allow(player).to receive(:castling?)
           allow(black_pawn).to receive(:current_square=).with(square_passed_over)
           allow(black_pawn).to receive(:is_a?).with(Pawn).and_return(true)
+          allow(white_pawn).to receive(:player)
+            .and_return(double(pieces: [white_pawn]))
         end
 
         it 'remove the double-stepping white pawn from the chessboard' do

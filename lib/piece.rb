@@ -24,14 +24,16 @@ class Piece
     opponent_pieces = search_opponent_pieces(board)
     moves_to_remove = []
 
-    legal_moves.each do |next_move|
-      copied_board = board.clone
-      copied_piece = clone
+    copied_board = Marshal.dump(board)
 
-      copied_piece.player.move!(copied_piece, next_move, copied_board)
+    legal_moves.each do |next_move|
+      c_board = Marshal.load(copied_board)
+      c_piece = c_board[current_square]
+
+      c_piece.player.move!(c_piece, next_move, c_board)
 
       opponent_pieces.each do |opponent_piece|
-        moves_to_remove << next_move if opponent_piece.gives_check?(copied_board)
+        moves_to_remove << next_move if opponent_piece.gives_check?(c_board)
       end
     end
 
@@ -39,10 +41,11 @@ class Piece
   end
 
   def gives_check?(board)
-    return false unless board.value?(self)
-    return false unless find_opponent_king(board)
-
-    search_legal_moves(board).include?(find_opponent_king(board).current_square)
+    begin
+      search_legal_moves(board).include?(find_opponent_king(board).current_square)
+    rescue NoMethodError
+      false
+    end
   end
 
   def attacking_square?(square, board)

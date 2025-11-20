@@ -53,6 +53,10 @@ class Player
     direction = { 'white' => method(:downward), 'black' => method(:upward) }
 
     direction[pawn.color].call(to_square) do |square_taken|
+      piece_taken = board[square_taken]
+
+      piece_taken.player.pieces.delete(piece_taken)
+
       board[square_taken] = EMPTY_SQUARE
 
       break

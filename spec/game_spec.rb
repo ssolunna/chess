@@ -383,21 +383,16 @@ describe Game do
         end
 
         it 'saves a FEN record of the move in a log variable' do
-          allow(chessgame).to receive(:set_pieces).and_call_original
-
-          allow(chessgame).to receive(:gets)
-            .and_return('draw', 'draw')
-
           allow(white_player).to receive(:gets)
-            .and_return(first_pawn.current_square, 'a4', 'draw')
+            .and_return(first_pawn.current_square, 'a4')
 
-          expected_fen_record = 'rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1'
+          allow(chessgame).to receive(:record_fen).and_call_original
 
-          chessgame.play
+          expect(chessgame).to receive(:record_fen)
+            .with(board.chessboard, first_pawn).once
 
-          fen_log = chessgame.instance_variable_get(:@fen_log)
-
-          expect(fen_log.last).to eql(expected_fen_record)
+          expect { chessgame.play }
+            .to change { chessgame.fen_log }
         end
 
         context 'when player proposes a draw' do

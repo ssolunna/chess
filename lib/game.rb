@@ -143,6 +143,12 @@ class Game
   end
 
   def promote(pawn)
+    board.display
+
+    puts "          \e[93;1m\u276A Pawn Promotion \u276B\e[0m"
+    print "\e[1m[#{player_in_turn.color.capitalize}]\e[0m "
+    print 'Type name of piece to promote Pawn to: '
+
     pieces_options = %w[queen rook bishop knight]
 
     chosen_piece = player_in_turn.player_input(pieces_options)
@@ -166,12 +172,14 @@ class Game
     puts "          \e[93;1m\u276A Draw proposal \u276B\e[0m"
     print "\e[1m[#{player_in_turn.color.capitalize}]\e[0m "
     print 'Want to propose a draw? [y|n]: '
+
     player_in_turn_input = gets.chomp.downcase
 
     return false unless player_in_turn_input.match?(/^(y|draw|yes)$/)
 
     print "\e[1m[#{select_opponent.color.capitalize}]\e[0m "
     print 'Accept draw proposal? [y|n]: '
+
     opponent_player_input = gets.chomp.downcase
 
     return false unless opponent_player_input.match?(/^(y|draw|yes)$/)
