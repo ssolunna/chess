@@ -132,20 +132,17 @@ RSpec.shared_examples 'a queen' do
             queen = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'g6')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('g6'))
 
             board = { 'g6' => opponent,
-                      'f7' => instance_double('King', current_square: 'f7',
-                                                      color: color,
-                                                      is_a?: true),
+                      'f7' => King.new(color, 'f7'),
                       'h6' => ' ',
-                      'g7' => double(color: opponent_color, gives_check?: false),
-                      'e7' => double(color: color),
+                      'g7' => Pawn.new(opponent_color, 'g7'),
+                      'e7' => Pawn.new(color, 'e7'),
                       'e6' => ' ',
                       'e5' => ' ',
-                      'd4' => double(color: opponent_color, gives_check?: false),
-                      'g5' => double(color: opponent_color, gives_check?: false),
-                      'f5' => double(color: color),
+                      'd4' => Pawn.new(color, 'd4'),
+                      'g5' => Pawn.new(opponent_color, 'g5'),
+                      'f5' => Pawn.new(color, 'f5'),
                       'f6' => queen }
 
             expected_array = %w[g6]
@@ -161,20 +158,17 @@ RSpec.shared_examples 'a queen' do
             queen = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'd5')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('d5'))
 
             board = { 'd5' => opponent,
-                      'f7' => instance_double('King', current_square: 'f7',
-                                                      color: color,
-                                                      is_a?: true),
+                      'f7' => King.new(color, 'f7'),
                       'h6' => ' ',
-                      'g7' => double(color: opponent_color, gives_check?: false),
-                      'e7' => double(color: color),
+                      'g7' => Pawn.new(opponent_color, 'g7'),
+                      'e7' => Pawn.new(color, 'e7'),
                       'e6' => ' ',
                       'e5' => ' ',
-                      'd4' => double(color: opponent_color, gives_check?: false),
-                      'g5' => double(color: opponent_color, gives_check?: false),
-                      'f5' => double(color: color),
+                      'd4' => Pawn.new(opponent_color, 'd4'),
+                      'g5' => Pawn.new(opponent_color, 'g5'),
+                      'f5' => Pawn.new(color, 'f5'),
                       'f6' => queen }
 
             expected_array = %w[e6]
@@ -190,20 +184,17 @@ RSpec.shared_examples 'a queen' do
             queen = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'e8')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
 
             board = { 'e8' => opponent,
-                      'f7' => instance_double('King', current_square: 'f7',
-                                                      color: color,
-                                                      is_a?: true),
+                      'f7' => King.new(color, 'f7'),
                       'h6' => ' ',
-                      'g7' => double(color: opponent_color, gives_check?: false),
-                      'e7' => double(color: color),
+                      'g7' => Pawn.new(opponent_color, 'g7'),
+                      'e7' => Pawn.new(color, 'e7'),
                       'e6' => ' ',
                       'e5' => ' ',
-                      'd4' => double(color: opponent_color, gives_check?: false),
-                      'g5' => double(color: opponent_color, gives_check?: false),
-                      'f5' => double(color: color),
+                      'd4' => Pawn.new(opponent_color, 'd4'),
+                      'g5' => Pawn.new(opponent_color, 'g5'),
+                      'f5' => Pawn.new(color, 'f5'),
                       'f6' => queen }
 
             selected_legal_moves = queen.screen_legal_moves(legal_moves, board)
@@ -217,20 +208,17 @@ RSpec.shared_examples 'a queen' do
             queen = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'd7')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
 
             board = { 'd7' => opponent,
-                      'f7' => instance_double('King', current_square: 'f7',
-                                                      color: color,
-                                                      is_a?: true),
+                      'f7' => King.new(color, 'f7'),
                       'h6' => ' ',
-                      'g7' => double(color: opponent_color, gives_check?: false),
-                      'e7' => double(color: color),
+                      'g7' => Pawn.new(opponent_color, 'g7'),
+                      'e7' => Pawn.new(color, 'e7'),
                       'e6' => ' ',
                       'e5' => ' ',
-                      'd4' => double(color: opponent_color, gives_check?: false),
-                      'g5' => double(color: opponent_color, gives_check?: false),
-                      'f5' => double(color: color),
+                      'd4' => Pawn.new(opponent_color, 'd4'),
+                      'g5' => Pawn.new(opponent_color, 'g5'),
+                      'f5' => Pawn.new(color, 'f5'),
                       'f6' => queen }
 
             expected_array = legal_moves
@@ -246,8 +234,6 @@ RSpec.shared_examples 'a queen' do
 end
 
 describe Queen do
-  QueenMovement.set_up
-
   let(:player) { Player.new('color', {}) }
 
   context 'with white queens' do

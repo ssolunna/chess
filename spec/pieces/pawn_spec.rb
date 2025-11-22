@@ -814,8 +814,8 @@ describe Pawn do
   end
 
   describe '#screen_legal_moves' do
-    let!(:setup) { PawnMovement.set_up }
-    let!(:player) { Player.new('color', {}) }
+    let(:player) { Player.new(color, {}) }
+    let(:opponent_player) { Player.new(opponent_color, {}) }
 
     context 'with white pawns' do
       let(:color) { 'white' }
@@ -832,17 +832,13 @@ describe Pawn do
               white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e3')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
-              allow(opponent).to receive(:taking_en_passant)
 
               board = { 'd2' => white_pawn,
                         'd3' => ' ',
                         'd4' => ' ',
                         'e3' => opponent,
-                        'f2' => instance_double('King', current_square: 'f2',
-                                                        color: color,
-                                                        is_a?: true),
-                        'c3' => double(color: opponent_color, gives_check?: false) }
+                        'f2' => King.new(color, 'f2'),
+                        'c3' => Pawn.new(opponent_color, 'c3') }
 
               expected_array = %w[e3]
 
@@ -857,17 +853,13 @@ describe Pawn do
               white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e3')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e3'))
-              allow(opponent).to receive(:taking_en_passant)
 
               board = { 'd2' => white_pawn,
                         'd3' => ' ',
                         'd4' => ' ',
                         'e3' => opponent,
-                        'e2' => instance_double('King', current_square: 'e2',
-                                                        color: color,
-                                                        is_a?: true),
-                        'c3' => double(color: opponent_color, gives_check?: false) }
+                        'e2' => King.new(color, 'e2'),
+                        'c3' => Pawn.new(opponent_color, 'c3') }
 
               expected_array = legal_moves
 
@@ -882,18 +874,14 @@ describe Pawn do
               white_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'g3')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g3'))
-              allow(opponent).to receive(:taking_en_passant)
 
               board = { 'd2' => white_pawn,
                         'd3' => ' ',
                         'd4' => ' ',
-                        'e3' => double(color: opponent_color, gives_check?: false),
+                        'e3' => Pawn.new(opponent_color, 'e3'),
                         'g3' => opponent,
-                        'f2' => instance_double('King', current_square: 'f2',
-                                                        color: color,
-                                                        is_a?: true),
-                        'c3' => double(color: opponent_color, gives_check?: false) }
+                        'f2' => King.new(color, 'f2'),
+                        'c3' => Pawn.new(opponent_color, 'c3') }
 
               selected_legal_moves = white_pawn.screen_legal_moves(legal_moves, board)
 
@@ -913,17 +901,14 @@ describe Pawn do
             it 'returns array of squares: e6' do
               white_pawn = described_class.new(color, current_square, player)
 
-              opponent = described_class.new(opponent_color, 'e5')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e5'))
+              opponent = described_class.new(opponent_color, 'e5', opponent_player)
 
               board = { 'f5' => white_pawn,
                         'f6' => ' ',
                         'e6' => ' ',
                         'e5' => opponent,
-                        'f4' => instance_double('King', current_square: 'f4',
-                                                        color: color,
-                                                        is_a?: true),
-                        'g6' => double(color: opponent_color, gives_check?: false) }
+                        'f4' => King.new(color, 'f4'),
+                        'g6' => Pawn.new(opponent_color, 'g6') }
 
               expected_array = %w[e6]
 
@@ -951,17 +936,13 @@ describe Pawn do
               black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e6')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
-              allow(opponent).to receive(:taking_en_passant)
 
               board = { 'd7' => black_pawn,
                         'd6' => ' ',
                         'd5' => ' ',
                         'e6' => opponent,
-                        'f7' => instance_double('King', current_square: 'f7',
-                                                        color: color,
-                                                        is_a?: true),
-                        'c6' => double(color: opponent_color, gives_check?: false) }
+                        'f7' => King.new(color, 'f7'),
+                        'c6' => Pawn.new(opponent_color, 'c6') }
 
               expected_array = %w[e6]
 
@@ -976,17 +957,13 @@ describe Pawn do
               black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'e6')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e6'))
-              allow(opponent).to receive(:taking_en_passant)
 
               board = { 'd7' => black_pawn,
                         'd6' => ' ',
                         'd5' => ' ',
                         'e6' => opponent,
-                        'e7' => instance_double('King', current_square: 'e7',
-                                                        color: color,
-                                                        is_a?: true),
-                        'c6' => double(color: opponent_color, gives_check?: false) }
+                        'e7' => King.new(color, 'e7'),
+                        'c6' => Pawn.new(opponent_color, 'c6') }
 
               expected_array = legal_moves
 
@@ -1001,18 +978,14 @@ describe Pawn do
               black_pawn = described_class.new(color, current_square, player)
 
               opponent = described_class.new(opponent_color, 'g6')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'g6'))
-              allow(opponent).to receive(:taking_en_passant)
 
               board = { 'd7' => black_pawn,
                         'd6' => ' ',
                         'd5' => ' ',
-                        'e6' => double(color: opponent_color, gives_check?: false),
+                        'e6' => Pawn.new(opponent_color, 'e6'),
                         'g6' => opponent,
-                        'f7' => instance_double('King', current_square: 'f7',
-                                                        color: color,
-                                                        is_a?: true),
-                        'c6' => double(color: opponent_color, gives_check?: false) }
+                        'f7' => King.new(color, 'f7'),
+                        'c6' => Pawn.new(opponent_color, 'c6') }
 
               selected_legal_moves = black_pawn.screen_legal_moves(legal_moves, board)
 
@@ -1032,17 +1005,15 @@ describe Pawn do
             it 'returns array of squares: e3' do
               black_pawn = described_class.new(color, current_square, player)
 
-              opponent = described_class.new(opponent_color, 'e4')
-              opponent.instance_variable_set(:@moves, opponent.moves_from(opponent_color, 'e4'))
+              opponent = described_class.new(opponent_color, 'e4', opponent_player)
 
               board = { 'f4' => black_pawn,
                         'f3' => ' ',
                         'e3' => ' ',
                         'e4' => opponent,
-                        'f5' => instance_double('King', current_square: 'f5',
-                                                        color: color,
-                                                        is_a?: true),
-                        'g3' => double(color: opponent_color, gives_check?: false) }
+                        'f5' => King.new(color, 'f5'),
+                        'e6' => Pawn.new(opponent_color, 'e6'),
+                        'g3' => Pawn.new(opponent_color, 'g3') }
 
               expected_array = %w[e3]
 

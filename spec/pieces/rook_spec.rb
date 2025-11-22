@@ -159,17 +159,14 @@ RSpec.shared_examples 'a rook' do
             rook = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'd7')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('d7'))
 
             board = { 'd7' => opponent,
                       'd6' => ' ',
-                      'f7' => instance_double('King', current_square: 'f7',
-                                                      color: color,
-                                                      is_a?: true),
+                      'f7' => King.new(color, 'f7'),
                       'd4' => ' ',
-                      'd3' => double(color: opponent_color, gives_check?: false),
-                      'e5' => double(color: opponent_color, gives_check?: false),
-                      'c5' => double(color: color),
+                      'd3' => Pawn.new(opponent_color, 'd3'),
+                      'e5' => Pawn.new(opponent_color, 'e5'),
+                      'c5' => Pawn.new(color, 'c5'),
                       'e7' => ' ',
                       'd5' => rook }
 
@@ -186,18 +183,15 @@ RSpec.shared_examples 'a rook' do
             rook = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'c7')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('c7'))
 
             board = { 'c7' => opponent,
                       'd7' => ' ',
                       'd6' => ' ',
-                      'f7' => instance_double('King', current_square: 'f7',
-                                                      color: color,
-                                                      is_a?: true),
+                      'f7' => King.new(color, 'f7'),
                       'd4' => ' ',
-                      'd3' => double(color: opponent_color, gives_check?: false),
-                      'e5' => double(color: opponent_color, gives_check?: false),
-                      'c5' => double(color: color),
+                      'd3' => Pawn.new(opponent_color, 'd3'),
+                      'e5' => Pawn.new(opponent_color, 'e5'),
+                      'c5' => Pawn.new(color, 'c5'),
                       'e7' => ' ',
                       'd5' => rook }
 
@@ -214,19 +208,16 @@ RSpec.shared_examples 'a rook' do
             rook = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'e8')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
 
             board = { 'e8' => opponent,
                       'e7' => ' ',
                       'd7' => ' ',
                       'd6' => ' ',
-                      'e6' => instance_double('King', current_square: 'e6',
-                                                      color: color,
-                                                      is_a?: true),
+                      'e6' => King.new(color, 'e6'),
                       'd4' => ' ',
-                      'd3' => double(color: opponent_color, gives_check?: false),
-                      'e5' => double(color: opponent_color, gives_check?: false),
-                      'c5' => double(color: color),
+                      'd3' => Pawn.new(opponent_color, 'd3'),
+                      'e5' => Pawn.new(opponent_color, 'e5'),
+                      'c5' => Pawn.new(color, 'c5'),
                       'd5' => rook }
 
             selected_legal_moves = rook.screen_legal_moves(legal_moves, board)
@@ -240,19 +231,16 @@ RSpec.shared_examples 'a rook' do
             rook = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'e8')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('e8'))
 
             board = { 'e8' => opponent,
-                      'e7' => double(color: color),
+                      'e7' => Pawn.new(color, 'e7'),
                       'd7' => ' ',
                       'd6' => ' ',
-                      'e6' => instance_double('King', current_square: 'e6',
-                                                      color: color,
-                                                      is_a?: true),
+                      'e6' => King.new(color, 'e6'),
                       'd4' => ' ',
-                      'd3' => double(color: opponent_color, gives_check?: false),
-                      'e5' => double(color: opponent_color, gives_check?: false),
-                      'c5' => double(color: color),
+                      'd3' => Pawn.new(opponent_color, 'd3'),
+                      'e5' => Pawn.new(opponent_color, 'e5'),
+                      'c5' => Pawn.new(color, 'c5'),
                       'd5' => rook }
 
             expected_array = legal_moves
@@ -268,8 +256,6 @@ RSpec.shared_examples 'a rook' do
 end
 
 describe Rook do
-  RookMovement.set_up
-
   let(:player) { Player.new('color', {}) }
 
   context 'with white rooks' do

@@ -129,18 +129,15 @@ RSpec.shared_examples 'a bishop' do
             bishop = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'd3')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('d3'))
 
             board = { 'd3' => opponent,
-                      'f5' => instance_double('King', current_square: 'f5',
-                                                      color: color,
-                                                      is_a?: true),
-                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'f5' => King.new(color, 'f5'),
+                      'a6' => Pawn.new(opponent_color, 'a6'),
                       'c4' => ' ',
                       'e4' => ' ',
-                      'd7' => double(color: opponent_color, gives_check?: false),
+                      'd7' => Pawn.new(opponent_color, 'd7'),
                       'c6' => ' ',
-                      'e2' => double(color: color),
+                      'e2' => Pawn.new(color, 'e2'),
                       'f1' => ' ',
                       'b5' => bishop }
 
@@ -157,18 +154,15 @@ RSpec.shared_examples 'a bishop' do
             bishop = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'c8')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('c8'))
 
             board = { 'c8' => opponent,
-                      'e6' => instance_double('King', current_square: 'e6',
-                                                      color: color,
-                                                      is_a?: true),
-                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'e6' => King.new(color, 'e6'),
+                      'a6' => Pawn.new(opponent_color, 'a6'),
                       'c4' => ' ',
                       'd7' => ' ',
                       'd3' => ' ',
                       'c6' => ' ',
-                      'e2' => double(color: color),
+                      'e2' => Pawn.new(color, 'e2'),
                       'f1' => ' ',
                       'b5' => bishop }
 
@@ -185,18 +179,15 @@ RSpec.shared_examples 'a bishop' do
             bishop = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'g8')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('g8'))
 
             board = { 'f7' => ' ',
                       'g8' => opponent,
-                      'e6' => instance_double('King', current_square: 'e6',
-                                                      color: color,
-                                                      is_a?: true),
-                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'e6' => King.new(color, 'e6'),
+                      'a6' => Pawn.new(opponent_color, 'a6'),
                       'c4' => ' ',
-                      'd7' => double(color: opponent_color, gives_check?: false),
+                      'd7' => Pawn.new(opponent_color, 'd7'),
                       'c6' => ' ',
-                      'e2' => double(color: color),
+                      'e2' => Pawn.new(opponent_color, 'e2'),
                       'f1' => ' ',
                       'd3' => ' ',
                       'b5' => bishop }
@@ -212,19 +203,17 @@ RSpec.shared_examples 'a bishop' do
             bishop = described_class.new(color, current_square, player)
 
             opponent = described_class.new(opponent_color, 'g8')
-            opponent.instance_variable_set(:@moves, opponent.moves_from('g8'))
 
             board = { 'd3' => ' ',
                       'g8' => opponent,
-                      'e6' => instance_double('King', current_square: 'e6',
-                                                      color: color,
-                                                      is_a?: true),
-                      'a6' => double(color: opponent_color, gives_check?: false),
+                      'e6' => King.new(color, 'e6'),
+                      'a6' => Pawn.new(opponent_color, 'a6'),
                       'c4' => ' ',
-                      'd7' => double(color: opponent_color, gives_check?: false),
+                      'e8' => ' ',
+                      'd7' => Pawn.new(color, 'd7'),
                       'c6' => ' ',
-                      'e2' => double(color: color),
-                      'f7' => double(color: color),
+                      'e2' => Pawn.new(color, 'e2'),
+                      'f7' => Pawn.new(color, 'f7'),
                       'f1' => ' ',
                       'b5' => bishop }
 
@@ -241,9 +230,7 @@ RSpec.shared_examples 'a bishop' do
 end
 
 describe Bishop do
-  BishopMovement.set_up
-
-  let(:player) { Player.new('color', {}) }
+  let(:player) { Player.new(color, {}) }
 
   context 'with white bishops' do
     it_behaves_like 'a bishop' do

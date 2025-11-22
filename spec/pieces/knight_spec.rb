@@ -165,14 +165,12 @@ RSpec.shared_examples 'a knight' do
 
             board = { 'd7' => opponent,
                       'f7' => ' ',
-                      'f8' => instance_double('King', current_square: 'f8',
-                                                      color: color,
-                                                      is_a?: true),
-                      'g6' => double(color: opponent_color, gives_check?: false),
+                      'f8' => King.new(color, 'f8'),
+                      'g6' => Pawn.new(opponent_color, 'g6'),
                       'g4' => ' ',
-                      'f3' => double(color: opponent_color, gives_check?: false),
-                      'd3' => double(color: color),
-                      'c4' => double(color: color),
+                      'f3' => Pawn.new(opponent_color, 'f3'),
+                      'd3' => Pawn.new(color, 'd3'),
+                      'c4' => Pawn.new(color, 'c4'),
                       'c6' => ' ',
                       'e5' => knight }
 
@@ -192,16 +190,14 @@ RSpec.shared_examples 'a knight' do
             opponent.instance_variable_set(:@moves, opponent.moves_from('f4'))
 
             board = { 'f4' => opponent,
-                      'h3' => instance_double('King', current_square: 'h3',
-                                                      color: color,
-                                                      is_a?: true),
-                      'g6' => double(color: opponent_color, gives_check?: false),
+                      'h3' => King.new(color, 'h3'),
+                      'g6' => Pawn.new(opponent_color, 'g6'),
                       'd7' => ' ',
                       'g4' => ' ',
-                      'f3' => double(color: opponent_color, gives_check?: false),
-                      'd3' => double(color: color),
-                      'c4' => double(color: color),
-                      'f7' => double(color: color),
+                      'f3' => Pawn.new(opponent_color, 'f3'),
+                      'd3' => Pawn.new(color, 'd3'),
+                      'c4' => Pawn.new(color, 'c4'),
+                      'f7' => Pawn.new(color, 'f7'),
                       'c6' => ' ',
                       'e5' => knight }
 
@@ -219,16 +215,14 @@ RSpec.shared_examples 'a knight' do
             opponent.instance_variable_set(:@moves, opponent.moves_from('h5'))
 
             board = { 'h5' => opponent,
-                      'h3' => instance_double('King', current_square: 'h3',
-                                                      color: color,
-                                                      is_a?: true),
-                      'g6' => double(color: opponent_color, gives_check?: false),
+                      'h3' => King.new(color, 'h3'),
+                      'g6' => Pawn.new(opponent_color, 'g6'),
                       'd7' => ' ',
                       'g4' => ' ',
-                      'f3' => double(color: opponent_color, gives_check?: false),
-                      'd3' => double(color: color),
-                      'c4' => double(color: color),
-                      'f7' => double(color: color),
+                      'f3' => Pawn.new(opponent_color, 'f3'),
+                      'd3' => Pawn.new(color, 'd3'),
+                      'c4' => Pawn.new(color, 'c4'),
+                      'f7' => Pawn.new(color, 'f7'),
                       'c6' => ' ',
                       'e5' => knight }
 

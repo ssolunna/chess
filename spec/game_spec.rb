@@ -519,13 +519,9 @@ describe Game do
         pawn_no_last_rows = { 'white' => %w[a1 b2 c3 d4 e5 f6 g7 h7],
                               'black' => %w[a8 b7 c6 d5 e4 f3 g2 h2] }
 
-        pawn_last_rows = { 'white' => %w[a8 b8 c8 d8 e8 f8 g8 h8],
-                           'black' => %w[a1 b1 c1 d1 e1 f1 g1 h1] }
-
-        context "when white pawn does not reach the last row" do
+        context 'when white pawn does not reach the last row' do
           pawn_no_last_rows['white'].each do |no_last_row|
             context "when white pawn moves to #{no_last_row} row" do
-
               it 'does not ask user for input about piece to promote pawn' do
                 board.chessboard[first_pawn.current_square] = first_pawn
 
@@ -545,7 +541,7 @@ describe Game do
           end
         end
 
-        context "when white pawn reaches the last row at a8" do
+        context 'when white pawn reaches the last row at a8' do
           let(:last_row) { 'a8' }
 
           before do

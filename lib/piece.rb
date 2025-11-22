@@ -41,11 +41,27 @@ class Piece
   end
 
   def gives_check?(board)
+    return false unless active?(board)
+
     begin
       search_legal_moves(board).include?(find_opponent_king(board).current_square)
     rescue NoMethodError
       false
     end
+  end
+
+  def active?(board)
+    return false if empty_square?(current_square, board)
+
+    piece = board[current_square]
+
+    piece.instance_variables.each do |var|
+      next if var == :@player
+
+      return false unless piece.instance_variable_get(var) == instance_variable_get(var)
+    end
+
+    true
   end
 
   def attacking_square?(square, board)

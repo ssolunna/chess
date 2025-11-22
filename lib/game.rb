@@ -231,7 +231,6 @@ class Game
       index = record_reversed.index(c) - 1
 
       return record_reversed.reverse[0, record_reversed.size - index]
-      break
     end
   end
 
