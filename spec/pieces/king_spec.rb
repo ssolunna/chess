@@ -5,13 +5,7 @@ require_relative '../../lib/player'
 
 RSpec.shared_examples 'a king' do
   describe '#search_legal_moves' do
-    let(:king) { described_class.new(color, current_square, player) }
-
     context 'without castling moves available' do
-      before do
-        king.instance_variable_set(:@moves, king.moves_from(current_square))
-      end
-
       context 'when king is at e1 (but no rooks)' do
         let(:current_square) { 'e1' }
 
@@ -110,26 +104,15 @@ RSpec.shared_examples 'a king' do
     end
 
     context 'with castling moves available' do
-      context 'when white king at e1, white rooks at a1 and h1
+      context 'when king at e1, rooks at a1 and h1
           and same color pieces at d2, e2, f2' do
         let(:current_square) { 'e1' }
         let(:rook_at_square) { 'a1' }
         let(:second_rook_at_square) { 'h1' }
 
-        let(:opponent) { described_class.new(opponent_color, '') }
-        let(:rook) do
-          double('Rook', color: color,
-                         current_square: rook_at_square,
-                         player: player,
-                         moves_log: [rook_at_square])
-        end
+        let(:rook) { Rook.new(color, rook_at_square, player) }
 
-        let(:second_rook) do
-          double('2Rook', color: color,
-                          current_square: second_rook_at_square,
-                          player: player,
-                          moves_log: [second_rook_at_square])
-        end
+        let(:second_rook) { Rook.new(color, second_rook_at_square, player) }
 
         let(:board) do
           { rook_at_square => rook,
@@ -140,21 +123,23 @@ RSpec.shared_examples 'a king' do
             'f1' => ' ',
             'g1' => ' ',
             second_rook_at_square => second_rook,
-            'd2' => double(color: color),
-            'e2' => double(color: color),
-            'f2' => double(color: color) }
-        end
-
-        before do
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          player.instance_variable_set(:@pieces, [king, rook, second_rook])
-          allow(rook).to receive(:class) { Rook }
-          allow(second_rook).to receive(:class) { Rook }
+            'd2' => Pawn.new(color, 'd2'),
+            'e2' => Pawn.new(color, 'e2'),
+            'f2' => Pawn.new(color, 'f2'),
+            'a8' => Rook.new(opponent_color, 'a8', opponent_player),
+            'b8' => ' ',
+            'c8' => ' ',
+            'd8' => ' ',
+            'e8' => King.new(opponent_color, 'e8', opponent_player),
+            'f8' => ' ',
+            'g8' => ' ',
+            'h8' => Rook.new(opponent_color, 'h8', opponent_player) }
         end
 
         context 'if castling conditions are met for both rooks' do
           it 'returns an array of squares d1, f1, c1, g1' do
             expected_array = %w[d1 f1 c1 g1]
+
             expect(king.search_legal_moves(board)).to match_array(expected_array)
           end
         end
@@ -188,34 +173,33 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if king is in check' do
+          context 'if king is in check by knight at c2' do
             it 'returns an array of squares d1, f1' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return([current_square])
+              opponent = Knight.new(opponent_color, 'c2', opponent_player)
 
               board['c2'] = opponent
 
               expected_array = %w[d1 f1]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if an opponent is attacking square d1' do
-            it 'returns an array of squares d1, f1, g1' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['d1'])
+          context 'if king is not in check by knight at e3' do
+            it 'returns an array of squares: d1 f1' do
+              opponent = Knight.new(opponent_color, 'e3', opponent_player)
 
               board['e3'] = opponent
 
-              expected_array = %w[d1 f1 g1]
+              expected_array = %w[d1 f1]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if an opponent is attacking square f1' do
+          context 'if knight is attacking square f1' do
             it 'returns an array of squares d1, c1, f1' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['f1'])
+              opponent = Knight.new(opponent_color, 'g3', opponent_player)
 
               board['g3'] = opponent
 
@@ -224,39 +208,45 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if an opponent is attacking square c1' do
+          context 'if knight is attacking square c1' do
             it 'returns an array of squares d1, f1, g1' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['c1'])
+              opponent = Knight.new(opponent_color, 'b3', opponent_player)
 
-              board['d3'] = opponent
+              board['b3'] = opponent
 
               expected_array = %w[d1 f1 g1]
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if an opponent is attacking square g1' do
-            it 'returns an array of squares d1, c1, f1' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['g1'])
+          context 'if knight is attacking squares e1 c1' do
+            it 'returns an array of squares d1, f1' do
+              opponent = Knight.new(opponent_color, 'd3', opponent_player)
+
+              board['d3'] = opponent
+
+              expected_array = %w[d1 f1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if knight is attacking squares e1 g1' do
+            it 'returns an array of squares d1, f1' do
+              opponent = Knight.new(opponent_color, 'f3', opponent_player)
 
               board['f3'] = opponent
 
-              expected_array = %w[d1 c1 f1]
+              expected_array = %w[f1 d1]
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
           %w[b1 c1 d1].each do |square|
-            context "if there is a piece at #{square}" do
+            context "if there is an opponent piece at #{square}" do
               it 'returns an array including g1 but not c1' do
-                piece = double(color: opponent_color,
-                               current_square: square,
-                               gives_check?: false,
-                               attacking_square?: false)
+                opponent = Knight.new(opponent_color, square, opponent_player)
 
-                board[square] = piece
+                board[square] = opponent
 
                 expect(king.search_legal_moves(board)).to include('g1')
                 expect(king.search_legal_moves(board)).not_to include('c1')
@@ -265,12 +255,9 @@ RSpec.shared_examples 'a king' do
           end
 
           %w[f1 g1].each do |square|
-            context "if there is a piece at #{square}" do
+            context "if there is a same-color piece at #{square}" do
               it 'returns an array including c1 but not g1' do
-                piece = double(color: opponent_color,
-                               current_square: square,
-                               gives_check?: false,
-                               attacking_square?: false)
+                piece = Knight.new(color, square, opponent_player)
 
                 board[square] = piece
 
@@ -280,17 +267,10 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if there are pieces at d1 and f1' do
+          context 'if there are opponent pieces at d1 and f1' do
             it 'returns an array not including c1, g1' do
-              piece = double(color: opponent_color,
-                             current_square: 'd1',
-                             gives_check?: false,
-                             attacking_square?: false)
-
-              second_piece = double(color: opponent_color,
-                                    current_square: 'f1',
-                                    gives_check?: false,
-                                    attacking_square?: false)
+              piece = Rook.new(opponent_color, 'd1', opponent_player)
+              second_piece = Rook.new(opponent_color, 'f1', opponent_player)
 
               board['d1'] = piece
               board['f1'] = second_piece
@@ -310,7 +290,7 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if rook at a1 moves, but king do not' do
+          context 'if rook at a1 moves, but king does not' do
             it 'returns an array of squares d1 f1 g1' do
               allow(rook).to receive(:moves_log).and_return([rook_at_square, 'a2'])
 
@@ -318,11 +298,12 @@ RSpec.shared_examples 'a king' do
               board[rook_at_square] = ' '
 
               expected_array = %w[d1 f1 g1]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if rook at h1 moves, but king do not' do
+          context 'if rook at h1 moves, but king does not' do
             it 'returns an array of squares d1 f1 c1' do
               allow(second_rook).to receive(:moves_log).and_return([second_rook_at_square, 'h2'])
 
@@ -330,24 +311,26 @@ RSpec.shared_examples 'a king' do
               board[second_rook_at_square] = ' '
 
               expected_array = %w[d1 f1 c1]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
           context 'if there is no rook at a1' do
             it 'returns an array of squares d1 f1 g1' do
-              allow(player).to receive(:pieces) { [king, second_rook] }
+              player.pieces.delete(rook)
 
               board[rook_at_square] = ' '
 
               expected_array = %w[d1 f1 g1]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
           context 'if there is no rook at h1' do
             it 'returns an array of squares d1 f1 c1' do
-              allow(player).to receive(:pieces) { [king, rook] }
+              player.pieces.delete(second_rook)
 
               board[second_rook_at_square] = ' '
 
@@ -356,9 +339,10 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if there is no rook' do
+          context 'if there are no rooks' do
             it 'returns an array of squares d1 f1' do
-              allow(player).to receive(:pieces) { [king] }
+              player.pieces.delete(rook)
+              player.pieces.delete(second_rook)
 
               board[rook_at_square] = ' '
               board[second_rook_at_square] = ' '
@@ -367,30 +351,44 @@ RSpec.shared_examples 'a king' do
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
+
+          context 'if opponent king is attacking squares b1 c1 d1' do
+            it 'returns an array of squares d1 f1 g1' do
+              opp_king = King.new(opponent_color, 'c2', opponent_player)
+              allow(opp_king).to receive(:moves_log).and_return(['e8', opp_king.current_square])
+
+              board['e8'] = ' '
+              board['c2'] = opp_king
+
+              expected_array = %w[d1 f1 g1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if opponent king is attacking squares e1 f1 g1' do
+            it 'returns an array of squares f2 d1 f1' do
+              opp_king = King.new(opponent_color, 'f2', opponent_player)
+              allow(opp_king).to receive(:moves_log).and_return(['e8', opp_king.current_square])
+
+              board['e8'] = ' '
+              board['f2'] = opp_king
+
+              expected_array = %w[f2 d1 f1]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
         end
       end
 
-      context 'when king at e8, white rooks at a8 and h8
+      context 'when king at e8, rooks at a8 and h8
           and same color pieces at d7, e7, f7' do
         let(:current_square) { 'e8' }
         let(:rook_at_square) { 'a8' }
         let(:second_rook_at_square) { 'h8' }
 
-        let(:opponent) { described_class.new(opponent_color, '') }
+        let(:rook) { Rook.new(color, rook_at_square, player) }
 
-        let(:rook) do
-          double('Rook', color: color,
-                         current_square: rook_at_square,
-                         player: player,
-                         moves_log: [rook_at_square])
-        end
-
-        let(:second_rook) do
-          double('2Rook', color: color,
-                          current_square: second_rook_at_square,
-                          player: player,
-                          moves_log: [second_rook_at_square])
-        end
+        let(:second_rook) { Rook.new(color, second_rook_at_square, player) }
 
         let(:board) do
           { rook_at_square => rook,
@@ -401,21 +399,23 @@ RSpec.shared_examples 'a king' do
             'f8' => ' ',
             'g8' => ' ',
             second_rook_at_square => second_rook,
-            'd7' => double(color: color),
-            'e7' => double(color: color),
-            'f7' => double(color: color) }
-        end
-
-        before do
-          king.instance_variable_set(:@moves, king.moves_from(current_square))
-          player.instance_variable_set(:@pieces, [king, rook, second_rook])
-          allow(rook).to receive(:class) { Rook }
-          allow(second_rook).to receive(:class) { Rook }
+            'd7' => Pawn.new(color, 'd7'),
+            'e7' => Pawn.new(color, 'e7'),
+            'f7' => Pawn.new(color, 'f7'),
+            'a1' => Rook.new(opponent_color, 'a1', opponent_player),
+            'b1' => ' ',
+            'c1' => ' ',
+            'd1' => ' ',
+            'e1' => King.new(opponent_color, 'e1', opponent_player),
+            'f1' => ' ',
+            'g1' => ' ',
+            'h1' => Rook.new(opponent_color, 'h1', opponent_player) }
         end
 
         context 'if castling conditions are met for both rooks' do
           it 'returns an array of squares d8, f8, c8, g8' do
             expected_array = %w[d8 f8 c8 g8]
+
             expect(king.search_legal_moves(board)).to match_array(expected_array)
           end
         end
@@ -449,34 +449,33 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if king is in check' do
+          context 'if king is in check by knight at c7' do
             it 'returns an array of squares d8, f8' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return([current_square])
+              opponent = Knight.new(opponent_color, 'c7', opponent_player)
 
               board['c7'] = opponent
 
               expected_array = %w[d8 f8]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if an opponent is attacking square d8' do
-            it 'returns an array of squares d8, f8, g8' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['d8'])
+          context 'if king is not in check by knight at e6' do
+            it 'returns an array of squares: d8 f8' do
+              opponent = Knight.new(opponent_color, 'e6', opponent_player)
 
               board['e6'] = opponent
 
-              expected_array = %w[d8 f8 g8]
+              expected_array = %w[d8 f8]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if an opponent is attacking square f8' do
+          context 'if knight is attacking square f8' do
             it 'returns an array of squares d8, c8, f8' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['f8'])
+              opponent = Knight.new(opponent_color, 'g6', opponent_player)
 
               board['g6'] = opponent
 
@@ -485,39 +484,45 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if an opponent is attacking square c8' do
+          context 'if knight is attacking square c8' do
             it 'returns an array of squares d8, f8, g8' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['c8'])
+              opponent = Knight.new(opponent_color, 'b6', opponent_player)
 
-              board['d6'] = opponent
+              board['b6'] = opponent
 
               expected_array = %w[d8 f8 g8]
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if an opponent is attacking square g8' do
-            it 'returns an array of squares d8, c8, f8' do
-              allow(opponent).to receive(:search_legal_moves)
-                .and_return(['g8'])
+          context 'if knight is attacking squares e8 c8' do
+            it 'returns an array of squares d8, f8' do
+              opponent = Knight.new(opponent_color, 'd6', opponent_player)
+
+              board['d6'] = opponent
+
+              expected_array = %w[d8 f8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if knight is attacking squares e8 g8' do
+            it 'returns an array of squares d8, f8' do
+              opponent = Knight.new(opponent_color, 'f6', opponent_player)
 
               board['f6'] = opponent
 
-              expected_array = %w[d8 c8 f8]
+              expected_array = %w[f8 d8]
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
           %w[b8 c8 d8].each do |square|
-            context "if there is a piece at #{square}" do
+            context "if there is an opponent piece at #{square}" do
               it 'returns an array including g8 but not c8' do
-                piece = double(color: opponent_color,
-                               current_square: square,
-                               gives_check?: false,
-                               attacking_square?: false)
+                opponent = Knight.new(opponent_color, square, opponent_player)
 
-                board[square] = piece
+                board[square] = opponent
 
                 expect(king.search_legal_moves(board)).to include('g8')
                 expect(king.search_legal_moves(board)).not_to include('c8')
@@ -526,12 +531,9 @@ RSpec.shared_examples 'a king' do
           end
 
           %w[f8 g8].each do |square|
-            context "if there is a piece at #{square}" do
+            context "if there is a same-color piece at #{square}" do
               it 'returns an array including c8 but not g8' do
-                piece = double(color: opponent_color,
-                               current_square: square,
-                               gives_check?: false,
-                               attacking_square?: false)
+                piece = Knight.new(color, square, opponent_player)
 
                 board[square] = piece
 
@@ -541,17 +543,10 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if there are pieces at d8 and f8' do
+          context 'if there are opponent pieces at d8 and f8' do
             it 'returns an array not including c8, g8' do
-              piece = double(color: opponent_color,
-                             current_square: 'd8',
-                             gives_check?: false,
-                             attacking_square?: false)
-
-              second_piece = double(color: opponent_color,
-                                    current_square: 'f8',
-                                    gives_check?: false,
-                                    attacking_square?: false)
+              piece = Rook.new(opponent_color, 'd8', opponent_player)
+              second_piece = Rook.new(opponent_color, 'f8', opponent_player)
 
               board['d8'] = piece
               board['f8'] = second_piece
@@ -571,7 +566,7 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if rook at a8 moves, but king do not' do
+          context 'if rook at a8 moves, but king does not' do
             it 'returns an array of squares d8 f8 g8' do
               allow(rook).to receive(:moves_log).and_return([rook_at_square, 'a7'])
 
@@ -579,11 +574,12 @@ RSpec.shared_examples 'a king' do
               board[rook_at_square] = ' '
 
               expected_array = %w[d8 f8 g8]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
-          context 'if rook at h8 moves, but king do not' do
+          context 'if rook at h8 moves, but king does not' do
             it 'returns an array of squares d8 f8 c8' do
               allow(second_rook).to receive(:moves_log).and_return([second_rook_at_square, 'h7'])
 
@@ -591,24 +587,26 @@ RSpec.shared_examples 'a king' do
               board[second_rook_at_square] = ' '
 
               expected_array = %w[d8 f8 c8]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
           context 'if there is no rook at a8' do
             it 'returns an array of squares d8 f8 g8' do
-              allow(player).to receive(:pieces) { [king, second_rook] }
+              player.pieces.delete(rook)
 
               board[rook_at_square] = ' '
 
               expected_array = %w[d8 f8 g8]
+
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
 
           context 'if there is no rook at h8' do
             it 'returns an array of squares d8 f8 c8' do
-              allow(player).to receive(:pieces) { [king, rook] }
+              player.pieces.delete(second_rook)
 
               board[second_rook_at_square] = ' '
 
@@ -617,14 +615,41 @@ RSpec.shared_examples 'a king' do
             end
           end
 
-          context 'if there is no rook' do
+          context 'if there are no rooks' do
             it 'returns an array of squares d8 f8' do
-              allow(player).to receive(:pieces) { [king] }
+              player.pieces.delete(rook)
+              player.pieces.delete(second_rook)
 
               board[rook_at_square] = ' '
               board[second_rook_at_square] = ' '
 
               expected_array = %w[d8 f8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if opponent king is attacking squares b8 c8 d8' do
+            it 'returns an array of squares d8 f8 g8' do
+              opp_king = King.new(opponent_color, 'c7', opponent_player)
+              allow(opp_king).to receive(:moves_log).and_return(['e8', opp_king.current_square])
+
+              board['e1'] = ' '
+              board['c7'] = opp_king
+
+              expected_array = %w[d8 f8 g8]
+              expect(king.search_legal_moves(board)).to match_array(expected_array)
+            end
+          end
+
+          context 'if opponent king is attacking squares e8 f8 g8' do
+            it 'returns an array of squares f7 d8 f8' do
+              opp_king = King.new(opponent_color, 'f7', opponent_player)
+              allow(opp_king).to receive(:moves_log).and_return(['e8', opp_king.current_square])
+
+              board['e1'] = ' '
+              board['f7'] = opp_king
+
+              expected_array = %w[f7 d8 f8]
               expect(king.search_legal_moves(board)).to match_array(expected_array)
             end
           end
@@ -634,8 +659,6 @@ RSpec.shared_examples 'a king' do
   end
 
   describe '#screen_legal_moves' do
-    let(:king) { described_class.new(color, current_square, player) }
-
     context 'when king is at f4' do
       let(:current_square) { 'f4' }
 
@@ -838,8 +861,11 @@ end
 
 describe King do
   KingMovement.set_up
+  KnightMovement.set_up
 
-  let(:player) { Player.new('color', {}) }
+  let(:player) { Player.new(color, {}) }
+  let(:opponent_player) { Player.new(opponent_color, {}) }
+  let(:king) { described_class.new(color, current_square, player) }
 
   context 'with white kings' do
     it_behaves_like 'a king' do

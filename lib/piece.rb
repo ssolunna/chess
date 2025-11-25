@@ -50,24 +50,14 @@ class Piece
     end
   end
 
-  def active?(board)
-    return false if empty_square?(current_square, board)
-
-    piece = board[current_square]
-
-    piece.instance_variables.each do |var|
-      next if var == :@player
-
-      return false unless piece.instance_variable_get(var) == instance_variable_get(var)
-    end
-
-    true
-  end
-
   def attacking_square?(square, board)
     return false unless board.value?(self)
 
-    search_legal_moves(board).include?(square)
+    begin
+      search_legal_moves(board).include?(square)
+    rescue NoMethodError
+      false
+    end
   end
 
   private
@@ -95,5 +85,19 @@ class Piece
 
   def empty_square?(square, board)
     board[square] == EMPTY_SQUARE
+  end
+
+  def active?(board)
+    return false if empty_square?(current_square, board)
+
+    piece = board[current_square]
+
+    piece.instance_variables.each do |var|
+      next if var == :@player
+
+      return false unless piece.instance_variable_get(var) == instance_variable_get(var)
+    end
+
+    true
   end
 end

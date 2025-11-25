@@ -20,10 +20,10 @@ class King < Piece
   end
 
   def castling_moves(board)
-    return unless moves_log.size == 1 # King has not made a move yet
+    return unless moves_log.one? # King has not made a move yet
 
     rooks = player.pieces.select do |piece|
-      piece.class.name == 'Rook' && piece.moves_log.size == 1
+      piece.instance_of?(Rook) && piece.moves_log.one?
     end
 
     return unless rooks.any? # A Rook has not made a move yet
@@ -69,12 +69,16 @@ class King < Piece
   end
 
   def castling_squares_clear?(square_moved_over, two_squares_towards_rook, board)
-    board.none? do |square, piece|
-      next if piece == self || empty_square?(square, board) || piece.color == color
+    opponents = search_opponent_pieces(board)
 
-      piece.gives_check?(board) ||
-        piece.attacking_square?(square_moved_over, board) ||
-        piece.attacking_square?(two_squares_towards_rook, board)
+    opponents.each do |piece|
+      next if piece.instance_of?(King) && piece.moves_log.one? # Avoid SystemStackError due to search of castling moves
+
+      return if piece.attacking_square?(current_square, board)
+      return if piece.attacking_square?(square_moved_over, board)
+      return if piece.attacking_square?(two_squares_towards_rook, board)
     end
+
+    true
   end
 end
