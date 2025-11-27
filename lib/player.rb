@@ -47,6 +47,12 @@ class Player
     last_touched_piece == piece
   end
 
+  def checks?
+    return false if last_touched_piece.nil?
+
+    last_touched_piece.gives_check?(board.chessboard)
+  end
+
   private
 
   def take_en_passant(pawn, to_square, board)

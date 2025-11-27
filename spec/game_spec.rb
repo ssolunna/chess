@@ -21,9 +21,12 @@ describe Game do
   before do
     allow(chessgame).to receive(:puts)
     allow(chessgame).to receive(:print)
+    allow(chessgame).to receive(:printf)
+    allow(chessgame).to receive(:gets) { '' }
+    allow(chessgame).to receive(:start_game?) { true }
+
     allow(board).to receive(:display)
 
-    allow(chessgame).to receive(:gets) { '' }
     allow(first_pawn).to receive(:screen_legal_moves) { %w[a3 a4] }
     allow(second_pawn).to receive(:screen_legal_moves) { [] }
     allow(first_rook).to receive(:screen_legal_moves) { ['h2'] }
@@ -245,7 +248,9 @@ describe Game do
       it 'loads saved game with same variables' do
         allow(resumed_game).to receive(:puts)
         allow(resumed_game).to receive(:print)
+        allow(resumed_game).to receive(:printf)
         allow(resumed_game.board).to receive(:display)
+        allow(resumed_game).to receive(:start_game?) { true }
 
         allow(second_rook).to receive(:screen_legal_moves) { %w[h7] }
         allow(resumed_game).to receive(:search_moveable_pieces).and_return([])
@@ -505,13 +510,10 @@ describe Game do
         end
 
         it 'declares the opponent the winner by resignation' do
-          expect { chessgame.play }
-            .to change { chessgame.winner }
-            .from(nil)
-            .to(black_player)
-            .and change { chessgame.resign }
-            .from(false)
-            .to(true)
+          expect(chessgame).to receive(:display_resignation)
+            .with(white_player)
+
+          chessgame.play
         end
       end
 
@@ -612,33 +614,47 @@ describe Game do
       context 'when player is checkmated' do
         context 'if white king is in check' do
           let(:w_king) { King.new('white', 'a1', white_player) }
-          let(:b_rook) { Rook.new('black', 'a4', black_player) }
+          let(:b_queen) { Queen.new('black', 'c2', black_player) }
+          let(:b_rook) { Rook.new('black', 'a3', black_player) }
 
           it 'declares black player the winner' do
+            black_player.instance_variable_set(:@last_touched_piece, b_rook)
+
             board.chessboard[w_king.current_square] = w_king
+            board.chessboard[b_queen.current_square] = b_queen
             board.chessboard[b_rook.current_square] = b_rook
 
-            expect { chessgame.play }
-              .to change { chessgame.winner }
-              .from(nil)
-              .to(black_player)
+            expect(chessgame).to receive(:display_check)
+              .with(b_rook).once
+
+            expect(chessgame).to receive(:display_winner)
+              .with(black_player).once
+
+            chessgame.play
           end
         end
 
         context 'if black king is in check' do
-          let(:b_king) { King.new('black', 'a8', black_player) }
-          let(:w_rook) { Rook.new('white', 'a5', white_player) }
+          let(:b_king) { King.new('black', 'a7', black_player) }
+          let(:w_queen) { Queen.new('white', 'c7', white_player) }
+          let(:w_rook) { Rook.new('white', 'a4', white_player) }
 
           it 'declares white player the winner' do
             chessgame.instance_variable_set(:@player_in_turn, black_player)
 
+            white_player.instance_variable_set(:@last_touched_piece, w_rook)
+
             board.chessboard[b_king.current_square] = b_king
+            board.chessboard[w_queen.current_square] = w_queen
             board.chessboard[w_rook.current_square] = w_rook
 
-            expect { chessgame.play }
-              .to change { chessgame.winner }
-              .from(nil)
-              .to(white_player)
+            expect(chessgame).to receive(:display_check)
+              .with(w_rook).once
+
+            expect(chessgame).to receive(:display_winner)
+              .with(white_player).once
+
+            chessgame.play
           end
         end
       end
@@ -646,33 +662,41 @@ describe Game do
       context 'when player is stalemated' do
         context 'if white king is not in check' do
           let(:w_king) { King.new('white', 'a1', white_player) }
-          let(:b_rook) { Rook.new('black', 'b4', black_player) }
+          let(:b_queen) { Queen.new('black', 'c2', black_player) }
 
           it 'declares a draw by stalemate' do
-            board.chessboard[w_king.current_square] = w_king
-            board.chessboard[b_rook.current_square] = b_rook
+            black_player.instance_variable_set(:@last_touched_piece, b_queen)
 
-            expect { chessgame.play }
-              .to change { chessgame.stalemate }
-              .from(false)
-              .to(true)
+            board.chessboard[w_king.current_square] = w_king
+            board.chessboard[b_queen.current_square] = b_queen
+
+            expect(chessgame).not_to receive(:display_check)
+
+            expect(chessgame).to receive(:display_stalemate)
+              .with(white_player)
+
+            chessgame.play
           end
         end
 
         context 'if black king is not in check' do
           let(:b_king) { King.new('black', 'a8', black_player) }
-          let(:w_rook) { Rook.new('white', 'b5', white_player) }
+          let(:w_queen) { Queen.new('white', 'c7', white_player) }
 
           it 'declares a draw by stalemate' do
             chessgame.instance_variable_set(:@player_in_turn, black_player)
 
-            board.chessboard[b_king.current_square] = b_king
-            board.chessboard[w_rook.current_square] = w_rook
+            white_player.instance_variable_set(:@last_touched_piece, w_queen)
 
-            expect { chessgame.play }
-              .to change { chessgame.stalemate }
-              .from(false)
-              .to(true)
+            board.chessboard[b_king.current_square] = b_king
+            board.chessboard[w_queen.current_square] = w_queen
+
+            expect(chessgame).not_to receive(:display_check)
+
+            expect(chessgame).to receive(:display_stalemate)
+              .with(black_player).once
+
+            chessgame.play
           end
         end
       end
@@ -696,6 +720,8 @@ describe Game do
           .and_return(second_rook.current_square, 'h7')
 
         expect(white_player).to receive(:move!).once.and_call_original
+
+        expect(chessgame).to receive(:display_draw_50).once
 
         chessgame.play
       end
@@ -725,6 +751,8 @@ describe Game do
         chessgame.instance_variable_set(:@fen_log, fen_records)
 
         expect(white_player).not_to receive(:move!)
+
+        expect(chessgame).to receive(:display_draw_threefold).once
 
         chessgame.play
       end

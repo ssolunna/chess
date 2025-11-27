@@ -32,9 +32,6 @@ class Game
     @white_player = Player.new('white', @board)
     @black_player = Player.new('black', @board)
     @player_in_turn = @white_player
-    @winner = nil
-    @stalemate = false
-    @resign = false
     @draw_agreed = false
     @fen_log = []
     @halfmove_clock = 0
@@ -42,11 +39,15 @@ class Game
   end
 
   def play
+    display_intro
+
     set_up_pieces_movements
 
     if File.exist?(FILENAME) && load_saved_game?
       load_game
     else
+      return unless start_game?
+
       set_pieces
       save_fen_record
     end
@@ -54,11 +55,21 @@ class Game
     player_turns
   end
 
+  def start_game?
+    print "Ready to \e[1mplay?\e[0m [y|n]: "
+
+    response = gets.chomp.downcase
+
+    response.match?(/^(y|yes|)$/)
+  end
+
   private
 
   def player_turns
     until halfmove_clock == 100 || threefold_repetition?
       board.display
+
+      display_check(select_opponent.last_touched_piece) if select_opponent.checks?
 
       moveable_pieces = search_moveable_pieces
 
@@ -184,6 +195,8 @@ class Game
 
     return false unless opponent_player_input.match?(/^(y|draw|yes)$/)
 
+    puts 'Draw agreement completed', 'Ending game...'
+
     @draw_agreed = true
   end
 
@@ -254,19 +267,11 @@ class Game
   end
 
   def load_saved_game?
-    print 'Saved game found. Do you want to load it? [y|n]: '
+    print "\e[1mSaved game found\e[0m. Do you want to load it? [y|n]: "
     response = gets.chomp.downcase
     puts
 
-    response.match?(/^(y|yes)$/)
-  end
-
-  def end_game(choice)
-    case choice
-    when 'save' then save_game
-    when 'resign' then resign_game
-    when 'draw' then draw_game
-    end
+    response.match?(/^(y|yes|)$/)
   end
 
   def set_pieces
@@ -312,25 +317,23 @@ class Game
   end
 
   def set_winner
-    if @resign == true || mated?
-      @winner = select_opponent
+    if select_opponent.checks?
+      display_winner(select_opponent)
     else
-      @stalemate = true
+      display_stalemate(player_in_turn)
     end
   end
 
-  def mated?
-    select_opponent.pieces.select { |piece| piece.gives_check?(board.chessboard) }.any?
-  end
-
-  def resign_game
-    @resign = true
-
-    set_winner
+  def end_game(choice)
+    case choice
+    when 'save' then save_game
+    when 'resign' then display_resignation(player_in_turn)
+    when 'draw' then draw_game
+    end
   end
 
   def draw_game
-    @halfmove_clock == 100 ? 'Draw by 50 moves rule' : 'Draw by repetition of moves rule'
+    @halfmove_clock == 100 ? display_draw_50 : display_draw_threefold
   end
 
   def select_opponent
