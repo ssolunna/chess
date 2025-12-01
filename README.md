@@ -10,6 +10,11 @@ Chess is a board game played by two players with sixteen pieces each (one king, 
 
 ## How to play
 ### Play from the CLI:
+#### Prerequisites
+- Ruby >= 3.1.2
+- Bundler >= 2.3.7
+
+#### Install 
 1. [Clone this repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository)
 
 *(inside the chess directory)*
@@ -39,10 +44,11 @@ The game covers pretty much all the rules of a classic game of chess, except for
 For further information look on the following website: [ChessVariants](https://www.chessvariants.org/d.chess/chess.html)
 
 ## Guidelines
-- Notation for squares is `[column][row]`, e.g., "e1" for the square on the e column/field and 1 row/rank
+- Notation for squares is `[column][row]`, e.g., "e1" for the square on the "e" column/field and "1" row/rank
 - You can save the game by typing `save` when prompted to choose a piece. *(Note that if you already saved a game and choose to save another one, the former will be overwritten by the latter)*
 - You can resign from playing by typing `resign` when prompted to choose a piece
 - If you are not sure what to type, i.e., what pieces are available to move or which moves are legal, press <kbd>enter</kbd> and a range of options will be displayed
+- To quickly dismiss the draw proposal prompts, press <kbd>enter</kbd>  
 
 ## Acknowledgements
 - [Rules and guidance](https://www.chessvariants.org/d.chess/chess.html)
